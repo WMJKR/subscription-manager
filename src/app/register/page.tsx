@@ -27,6 +27,8 @@ export default function RegisterPage() {
   const [amount, setAmount] = useState("");
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [nextBillingDate, setNextBillingDate] = useState(todayIsoDate());
+  const [isShared, setIsShared] = useState(false);
+  const [sharedCountInput, setSharedCountInput] = useState("2");
   const [error, setError] = useState("");
 
   const isCustom = selectedService === CUSTOM_OPTION;
@@ -38,6 +40,7 @@ export default function RegisterPage() {
 
     const serviceName = isCustom ? customName.trim() : selectedService;
     const parsedAmount = Number(amount);
+    const parsedSharedCount = isShared ? Number(sharedCountInput) : 1;
 
     if (!name.trim() || !email.trim()) {
       setError("이름과 이메일을 입력해주세요.");
@@ -55,12 +58,18 @@ export default function RegisterPage() {
       setError("다음 결제일을 선택해주세요.");
       return;
     }
+    if (isShared && (!sharedCountInput || Number.isNaN(parsedSharedCount) || parsedSharedCount < 1)) {
+      setError("나눠 쓰는 인원 수를 올바르게 입력해주세요.");
+      return;
+    }
 
     saveUserProfile({ name: name.trim(), email: email.trim() });
     addSubscription({
       serviceName,
       category: isCustom ? customCategory : preset?.category ?? DEFAULT_CATEGORY,
       amount: parsedAmount,
+      initialAmount: parsedAmount,
+      sharedCount: Math.round(parsedSharedCount),
       billingCycle,
       nextBillingDate,
     });
@@ -186,6 +195,44 @@ export default function RegisterPage() {
             onChange={(e) => setNextBillingDate(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
           />
+        </div>
+
+        <div className="rounded-lg border border-gray-200 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-gray-700">
+              이 구독을 다른 사람과 나눠 쓰나요?
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isShared}
+              onClick={() => setIsShared((v) => !v)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                isShared ? "bg-indigo-600" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                  isShared ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+          {isShared && (
+            <div className="mt-3">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                나눠 쓰는 인원 수 (본인 포함)
+              </label>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                value={sharedCountInput}
+                onChange={(e) => setSharedCountInput(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+          )}
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

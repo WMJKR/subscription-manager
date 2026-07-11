@@ -44,3 +44,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export const FALLBACK_CATEGORY_COLOR = "#898781";
+
+export function getServiceIcon(serviceName: string): string {
+  return SERVICE_PRESETS.find((s) => s.name === serviceName)?.icon ?? "💳";
+}

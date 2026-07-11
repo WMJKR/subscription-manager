@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { href: "/", label: "홈", icon: "🏠" },
   { href: "/register", label: "구독등록", icon: "➕" },
   { href: "/notifications", label: "알림", icon: "🔔" },
+  { href: "/report", label: "리포트", icon: "📊" },
 ];
 
 export default function BottomNav() {

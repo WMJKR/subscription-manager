@@ -1,10 +1,8 @@
-import { SERVICE_PRESETS } from "@/lib/constants";
-import { formatDate, formatDDay, getDDay } from "@/lib/date-utils";
+import type { KeyboardEvent, MouseEvent } from "react";
+import { getServiceIcon } from "@/lib/constants";
+import { getServiceDeepLink } from "@/lib/deeplinks";
+import { formatDate, formatDDay, getActualAmount, getDDay } from "@/lib/date-utils";
 import { Subscription } from "@/lib/types";
-
-function iconFor(serviceName: string): string {
-  return SERVICE_PRESETS.find((s) => s.name === serviceName)?.icon ?? "💳";
-}
 
 interface Props {
   subscription: Subscription;
@@ -14,16 +12,39 @@ interface Props {
 export default function SubscriptionCard({ subscription, onClick }: Props) {
   const dDay = getDDay(subscription.nextBillingDate);
   const isImminent = dDay <= 1 && dDay >= 0;
+  const isShared = (subscription.sharedCount ?? 1) > 1;
+  const actualAmount = getActualAmount(subscription);
+
+  function handleIconClick(e: MouseEvent) {
+    e.stopPropagation();
+    window.open(getServiceDeepLink(subscription.serviceName), "_blank", "noopener,noreferrer");
+  }
+
+  function handleKeyDown(e: KeyboardEvent) {
+    if (onClick && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      onClick();
+    }
+  }
 
   return (
-    <button
-      type="button"
+    <div
       onClick={onClick}
+      onKeyDown={handleKeyDown}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className={`flex w-full items-center gap-3 rounded-xl border bg-white p-4 text-left shadow-sm transition-colors ${
         isImminent ? "border-2 border-indigo-500" : "border-gray-200"
-      } ${onClick ? "cursor-pointer hover:bg-gray-50" : "cursor-default"}`}
+      } ${onClick ? "cursor-pointer hover:bg-gray-50" : ""}`}
     >
-      <span className="text-2xl leading-none">{iconFor(subscription.serviceName)}</span>
+      <button
+        type="button"
+        onClick={handleIconClick}
+        className="text-2xl leading-none"
+        aria-label={`${subscription.serviceName} 결제 관리로 이동`}
+      >
+        {getServiceIcon(subscription.serviceName)}
+      </button>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-gray-900">
           {subscription.serviceName}
@@ -44,7 +65,12 @@ export default function SubscriptionCard({ subscription, onClick }: Props) {
         <span className="text-sm font-semibold text-gray-900">
           {subscription.amount.toLocaleString()}원
         </span>
+        {isShared && (
+          <span className="text-right text-[11px] text-gray-500">
+            {subscription.sharedCount}명 분담 · 내 부담 {actualAmount.toLocaleString()}원
+          </span>
+        )}
       </div>
-    </button>
+    </div>
   );
 }
