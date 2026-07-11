@@ -73,6 +73,37 @@ export function getAnnualSavingsForSub(sub: Subscription): number {
   return sub.billingCycle === "monthly" ? actual * 12 : actual;
 }
 
+/**
+ * 특정 연/월(month는 0부터 시작)에 결제가 발생하는 날짜별 구독 목록.
+ * 매월 구독은 등록된 날짜(day-of-month)에 매달 반복되고(등록 월 이전은 제외),
+ * 매년 구독은 등록된 월에만 매년 반복된다. 그 달에 존재하지 않는 날짜(예: 31일)는 건너뛴다.
+ */
+export function getBillingDaysInMonth(
+  subscriptions: Subscription[],
+  year: number,
+  month: number
+): Map<number, Subscription[]> {
+  const map = new Map<number, Subscription[]>();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const viewedYM = year * 12 + month;
+
+  for (const sub of subscriptions.filter((s) => s.status === "active")) {
+    const anchor = new Date(sub.nextBillingDate);
+    const anchorYM = anchor.getFullYear() * 12 + anchor.getMonth();
+    const day = anchor.getDate();
+
+    const matches =
+      sub.billingCycle === "monthly"
+        ? viewedYM >= anchorYM && day <= daysInMonth
+        : anchor.getMonth() === month && year >= anchor.getFullYear();
+
+    if (!matches) continue;
+    map.set(day, [...(map.get(day) ?? []), sub]);
+  }
+
+  return map;
+}
+
 export interface CategoryBreakdownItem {
   category: string;
   amount: number;

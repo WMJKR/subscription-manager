@@ -7,9 +7,10 @@ import { Subscription } from "@/lib/types";
 interface Props {
   subscription: Subscription;
   onClick?: () => void;
+  onDelete?: () => void;
 }
 
-export default function SubscriptionCard({ subscription, onClick }: Props) {
+export default function SubscriptionCard({ subscription, onClick, onDelete }: Props) {
   const dDay = getDDay(subscription.nextBillingDate);
   const isImminent = dDay <= 1 && dDay >= 0;
   const isShared = (subscription.sharedCount ?? 1) > 1;
@@ -18,6 +19,11 @@ export default function SubscriptionCard({ subscription, onClick }: Props) {
   function handleIconClick(e: MouseEvent) {
     e.stopPropagation();
     window.open(getServiceDeepLink(subscription.serviceName), "_blank", "noopener,noreferrer");
+  }
+
+  function handleDeleteClick(e: MouseEvent) {
+    e.stopPropagation();
+    onDelete?.();
   }
 
   function handleKeyDown(e: KeyboardEvent) {
@@ -33,10 +39,20 @@ export default function SubscriptionCard({ subscription, onClick }: Props) {
       onKeyDown={handleKeyDown}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className={`flex w-full items-center gap-3 rounded-xl border bg-white p-4 text-left shadow-sm transition-colors ${
+      className={`relative flex w-full items-center gap-3 rounded-xl border bg-white p-4 text-left shadow-sm transition-colors ${
         isImminent ? "border-2 border-indigo-500" : "border-gray-200"
       } ${onClick ? "cursor-pointer hover:bg-gray-50" : ""}`}
     >
+      {onDelete && (
+        <button
+          type="button"
+          onClick={handleDeleteClick}
+          aria-label={`${subscription.serviceName} 삭제`}
+          className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-gray-300 hover:bg-red-50 hover:text-red-500"
+        >
+          ×
+        </button>
+      )}
       <button
         type="button"
         onClick={handleIconClick}

@@ -7,8 +7,8 @@ import SubscriptionCard from "@/components/SubscriptionCard";
 import CategoryDonutChart from "@/components/CategoryDonutChart";
 import TopSpendList from "@/components/TopSpendList";
 import { downloadICS } from "@/lib/ics";
-import { getGoal, saveGoal } from "@/lib/storage";
-import { SavingsGoal } from "@/lib/types";
+import { deleteSubscription, getGoal, saveGoal } from "@/lib/storage";
+import { SavingsGoal, Subscription } from "@/lib/types";
 import {
   getAnnualTotal,
   getCategoryBreakdown,
@@ -19,10 +19,11 @@ import {
 } from "@/lib/date-utils";
 
 export default function DashboardPage() {
-  const { subscriptions, isLoaded } = useSubscriptions();
+  const { subscriptions, isLoaded, refresh } = useSubscriptions();
   const [goal, setGoal] = useState<SavingsGoal | null>(null);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [goalNameInput, setGoalNameInput] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Subscription | null>(null);
 
   useEffect(() => {
     setGoal(getGoal());
@@ -54,6 +55,13 @@ export default function DashboardPage() {
       setGoal(updated);
     }
     setIsEditingGoal(false);
+  }
+
+  function handleConfirmDelete() {
+    if (!deleteTarget) return;
+    deleteSubscription(deleteTarget.id);
+    refresh();
+    setDeleteTarget(null);
   }
 
   return (
@@ -147,9 +155,49 @@ export default function DashboardPage() {
           </div>
         )}
         {sorted.map((sub) => (
-          <SubscriptionCard key={sub.id} subscription={sub} />
+          <SubscriptionCard
+            key={sub.id}
+            subscription={sub}
+            onDelete={() => setDeleteTarget(sub)}
+          />
         ))}
       </section>
+
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-20 flex items-end justify-center bg-black/40 sm:items-center"
+          onClick={() => setDeleteTarget(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-t-2xl bg-white p-6 sm:rounded-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-bold text-gray-900">
+              {deleteTarget.serviceName}을(를) 목록에서 삭제할까요?
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              이 작업은 되돌릴 수 없어요. 해지 절약 목표에는 반영되지 않아요.
+            </p>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="rounded-lg border border-gray-300 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-lg bg-red-600 py-3 text-sm font-semibold text-white hover:bg-red-700"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

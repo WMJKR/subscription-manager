@@ -1,0 +1,134 @@
+"use client";
+
+import { useState } from "react";
+import { getServiceIcon } from "@/lib/constants";
+import { getBillingDaysInMonth } from "@/lib/date-utils";
+import { Subscription } from "@/lib/types";
+
+const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
+
+interface Props {
+  subscriptions: Subscription[];
+}
+
+export default function BillingCalendar({ subscriptions }: Props) {
+  const today = new Date();
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const [selectedDay, setSelectedDay] = useState<number | null>(today.getDate());
+
+  const billingMap = getBillingDaysInMonth(subscriptions, viewYear, viewMonth);
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const firstWeekday = new Date(viewYear, viewMonth, 1).getDay();
+  const isViewingCurrentMonth = viewYear === today.getFullYear() && viewMonth === today.getMonth();
+
+  function goPrevMonth() {
+    setSelectedDay(null);
+    if (viewMonth === 0) {
+      setViewYear((y) => y - 1);
+      setViewMonth(11);
+    } else {
+      setViewMonth((m) => m - 1);
+    }
+  }
+
+  function goNextMonth() {
+    setSelectedDay(null);
+    if (viewMonth === 11) {
+      setViewYear((y) => y + 1);
+      setViewMonth(0);
+    } else {
+      setViewMonth((m) => m + 1);
+    }
+  }
+
+  const selectedSubs = selectedDay !== null ? billingMap.get(selectedDay) ?? [] : [];
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-4">
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={goPrevMonth}
+          aria-label="이전 달"
+          className="rounded-lg px-3 py-1 text-gray-500 hover:bg-gray-100"
+        >
+          ‹
+        </button>
+        <p className="text-sm font-semibold text-gray-900">
+          {viewYear}년 {viewMonth + 1}월
+        </p>
+        <button
+          type="button"
+          onClick={goNextMonth}
+          aria-label="다음 달"
+          className="rounded-lg px-3 py-1 text-gray-500 hover:bg-gray-100"
+        >
+          ›
+        </button>
+      </div>
+
+      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[11px] text-gray-400">
+        {WEEKDAY_LABELS.map((label) => (
+          <div key={label}>{label}</div>
+        ))}
+      </div>
+
+      <div className="mt-1 grid grid-cols-7 gap-1">
+        {Array.from({ length: firstWeekday }).map((_, i) => (
+          <div key={`blank-${i}`} />
+        ))}
+        {Array.from({ length: daysInMonth }).map((_, i) => {
+          const day = i + 1;
+          const hasBilling = billingMap.has(day);
+          const isToday = isViewingCurrentMonth && day === today.getDate();
+          const isSelected = selectedDay === day;
+
+          return (
+            <button
+              key={day}
+              type="button"
+              onClick={() => setSelectedDay(day)}
+              className={`flex h-9 flex-col items-center justify-center rounded-lg text-xs transition-colors ${
+                isSelected
+                  ? "bg-indigo-600 text-white"
+                  : isToday
+                    ? "border border-indigo-400 text-gray-900"
+                    : "text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <span>{day}</span>
+              {hasBilling && (
+                <span
+                  className={`mt-0.5 h-1 w-1 rounded-full ${isSelected ? "bg-white" : "bg-indigo-500"}`}
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 border-t border-gray-100 pt-3">
+        {selectedDay === null ? (
+          <p className="text-xs text-gray-400">날짜를 선택하면 결제 예정 구독을 볼 수 있어요.</p>
+        ) : selectedSubs.length === 0 ? (
+          <p className="text-xs text-gray-400">
+            {viewMonth + 1}월 {selectedDay}일에는 결제 예정 구독이 없어요.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {selectedSubs.map((sub) => (
+              <li key={sub.id} className="flex items-center gap-2 text-sm">
+                <span className="text-base leading-none">{getServiceIcon(sub.serviceName)}</span>
+                <span className="min-w-0 flex-1 truncate text-gray-700">{sub.serviceName}</span>
+                <span className="shrink-0 font-semibold text-gray-900">
+                  {sub.amount.toLocaleString()}원
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -6,6 +6,7 @@ import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { getAnnualSavingsForSub, getDDay } from "@/lib/date-utils";
 import { addToGoalSavings, getGoal, updateSubscription } from "@/lib/storage";
 import SubscriptionCard from "@/components/SubscriptionCard";
+import BillingCalendar from "@/components/BillingCalendar";
 import { Subscription } from "@/lib/types";
 
 const TRIAL_LEAD_DAYS = 5;
@@ -84,18 +85,23 @@ export default function NotificationsPage() {
       </header>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">알림 시점</label>
-        <select
-          value={threshold}
-          onChange={(e) => handleThresholdChange(Number(e.target.value))}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-        >
+        <span className="mb-1 block text-sm font-medium text-gray-700">알림 시점</span>
+        <div className="grid grid-cols-3 gap-2">
           {NOTIFICATION_THRESHOLD_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => handleThresholdChange(opt.value)}
+              className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                threshold === opt.value
+                  ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                  : "border-gray-300 text-gray-600"
+              }`}
+            >
               {opt.label}
-            </option>
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
       <section className="space-y-3">
@@ -114,6 +120,11 @@ export default function NotificationsPage() {
             )}
           </div>
         ))}
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold text-gray-700">결제 캘린더</h2>
+        <BillingCalendar subscriptions={subscriptions} />
       </section>
 
       {selected && (
