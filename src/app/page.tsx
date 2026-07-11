@@ -3,7 +3,16 @@
 import Link from "next/link";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
 import SubscriptionCard from "@/components/SubscriptionCard";
-import { getDDay, getThisMonthTotal } from "@/lib/date-utils";
+import CategoryDonutChart from "@/components/CategoryDonutChart";
+import TopSpendList from "@/components/TopSpendList";
+import {
+  getAnnualTotal,
+  getCategoryBreakdown,
+  getDDay,
+  getThisMonthTotal,
+  getTopSubscriptions,
+  getTotalSpend,
+} from "@/lib/date-utils";
 
 export default function DashboardPage() {
   const { subscriptions, isLoaded } = useSubscriptions();
@@ -13,6 +22,11 @@ export default function DashboardPage() {
     (a, b) => getDDay(a.nextBillingDate) - getDDay(b.nextBillingDate)
   );
   const monthlyTotal = getThisMonthTotal(subscriptions);
+  const annualTotal = getAnnualTotal(subscriptions);
+  const totalSpend = getTotalSpend(subscriptions);
+  const topSubscriptions = getTopSubscriptions(subscriptions);
+  const categoryBreakdown = getCategoryBreakdown(subscriptions);
+  const hasActiveSubscriptions = activeSubscriptions.length > 0;
 
   return (
     <div className="space-y-6">
@@ -23,11 +37,30 @@ export default function DashboardPage() {
 
       <section className="rounded-2xl bg-indigo-600 p-5 text-white shadow-sm">
         <p className="text-sm text-indigo-100">이번 달 총 구독 지출액</p>
-        <p className="mt-1 text-3xl font-bold">{monthlyTotal.toLocaleString()}원</p>
+        <p className="mt-1 text-3xl font-bold">
+          {monthlyTotal.toLocaleString()}원{" "}
+          <span className="text-base font-medium text-indigo-100">
+            · 연간 약 {annualTotal.toLocaleString()}원
+          </span>
+        </p>
         <p className="mt-2 text-sm text-indigo-100">
           등록된 구독 {activeSubscriptions.length}개
         </p>
       </section>
+
+      {hasActiveSubscriptions && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold text-gray-700">가장 비싸게 나가는 구독 Top 3</h2>
+          <TopSpendList items={topSubscriptions} />
+        </section>
+      )}
+
+      {hasActiveSubscriptions && (
+        <section className="space-y-3 rounded-2xl border border-gray-200 bg-white p-5">
+          <h2 className="text-sm font-semibold text-gray-700">카테고리별 지출 비중</h2>
+          <CategoryDonutChart breakdown={categoryBreakdown} totalAmount={totalSpend} />
+        </section>
+      )}
 
       <section className="space-y-3">
         {isLoaded && sorted.length === 0 && (

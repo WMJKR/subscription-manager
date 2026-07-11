@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SERVICE_PRESETS } from "@/lib/constants";
+import { CATEGORY_OPTIONS, DEFAULT_CATEGORY, SERVICE_PRESETS } from "@/lib/constants";
 import { addSubscription, getUserProfile, saveUserProfile } from "@/lib/storage";
 import { BillingCycle } from "@/lib/types";
 
@@ -23,6 +23,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState(existingUser?.email ?? "");
   const [selectedService, setSelectedService] = useState(SERVICE_PRESETS[0].name);
   const [customName, setCustomName] = useState("");
+  const [customCategory, setCustomCategory] = useState(DEFAULT_CATEGORY);
   const [amount, setAmount] = useState("");
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [nextBillingDate, setNextBillingDate] = useState(todayIsoDate());
@@ -58,7 +59,7 @@ export default function RegisterPage() {
     saveUserProfile({ name: name.trim(), email: email.trim() });
     addSubscription({
       serviceName,
-      category: isCustom ? "기타" : preset?.category ?? "기타",
+      category: isCustom ? customCategory : preset?.category ?? DEFAULT_CATEGORY,
       amount: parsedAmount,
       billingCycle,
       nextBillingDate,
@@ -116,15 +117,31 @@ export default function RegisterPage() {
         </div>
 
         {isCustom && (
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">서비스명 직접 입력</label>
-            <input
-              type="text"
-              value={customName}
-              onChange={(e) => setCustomName(e.target.value)}
-              placeholder="예: 회사 헬스장"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">서비스명 직접 입력</label>
+              <input
+                type="text"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder="예: 회사 헬스장"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">카테고리</label>
+              <select
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              >
+                {CATEGORY_OPTIONS.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
 

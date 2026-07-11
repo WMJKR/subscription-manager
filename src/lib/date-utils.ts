@@ -45,3 +45,61 @@ export function getThisMonthTotal(subscriptions: Subscription[]): number {
       return isSameMonthAsToday(sub.nextBillingDate) ? total + sub.amount : total;
     }, 0);
 }
+
+/** 연간 환산 총액. 매월 구독은 ×12, 매년 구독은 이미 연 단위이므로 그대로 더한다. */
+export function getAnnualTotal(subscriptions: Subscription[]): number {
+  return subscriptions
+    .filter((sub) => sub.status === "active")
+    .reduce((total, sub) => {
+      return total + (sub.billingCycle === "monthly" ? sub.amount * 12 : sub.amount);
+    }, 0);
+}
+
+export function getTotalSpend(subscriptions: Subscription[]): number {
+  return subscriptions
+    .filter((sub) => sub.status === "active")
+    .reduce((total, sub) => total + sub.amount, 0);
+}
+
+export interface CategoryBreakdownItem {
+  category: string;
+  amount: number;
+  percent: number;
+}
+
+/** 카테고리별 지출 비중. 퍼센트는 반올림하며, 금액 내림차순으로 정렬한다. */
+export function getCategoryBreakdown(subscriptions: Subscription[]): CategoryBreakdownItem[] {
+  const active = subscriptions.filter((sub) => sub.status === "active");
+  const total = getTotalSpend(active);
+
+  const amountByCategory = new Map<string, number>();
+  for (const sub of active) {
+    amountByCategory.set(sub.category, (amountByCategory.get(sub.category) ?? 0) + sub.amount);
+  }
+
+  return Array.from(amountByCategory.entries())
+    .map(([category, amount]) => ({
+      category,
+      amount,
+      percent: total > 0 ? Math.round((amount / total) * 100) : 0,
+    }))
+    .sort((a, b) => b.amount - a.amount);
+}
+
+export interface TopSubscriptionItem extends Subscription {
+  percent: number;
+}
+
+/** 금액이 가장 큰 구독 상위 n개. 각 항목에 전체 지출 대비 비중(%)을 함께 계산한다. */
+export function getTopSubscriptions(subscriptions: Subscription[], n = 3): TopSubscriptionItem[] {
+  const active = subscriptions.filter((sub) => sub.status === "active");
+  const total = getTotalSpend(active);
+
+  return [...active]
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, n)
+    .map((sub) => ({
+      ...sub,
+      percent: total > 0 ? Math.round((sub.amount / total) * 100) : 0,
+    }));
+}

@@ -1,3 +1,4 @@
+import { DEFAULT_CATEGORY } from "./constants";
 import { Subscription, UserProfile } from "./types";
 
 // 프로토타입 단계: 브라우저 localStorage로 데이터를 관리한다.
@@ -10,13 +11,18 @@ function isBrowser(): boolean {
   return typeof window !== "undefined";
 }
 
+// 카테고리 필드 도입 이전에 저장된 데이터에는 category가 없을 수 있어 기본값으로 보정한다.
+function normalizeSubscription(sub: Subscription): Subscription {
+  return { ...sub, category: sub.category || DEFAULT_CATEGORY };
+}
+
 export function getSubscriptions(): Subscription[] {
   if (!isBrowser()) return [];
   const raw = window.localStorage.getItem(SUBSCRIPTIONS_KEY);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Subscription[]) : [];
+    return Array.isArray(parsed) ? (parsed as Subscription[]).map(normalizeSubscription) : [];
   } catch {
     return [];
   }

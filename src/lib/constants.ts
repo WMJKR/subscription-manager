@@ -28,3 +28,19 @@ export const NOTIFICATION_THRESHOLD_OPTIONS: { label: string; value: number }[] 
 ];
 
 export const NOTIFICATION_THRESHOLD_STORAGE_KEY = "sm_notification_threshold";
+
+export const DEFAULT_CATEGORY = "기타";
+
+// 고정 순서 유지: 카테고리가 늘거나 줄어도 같은 카테고리는 항상 같은 색을 갖도록 한다.
+export const CATEGORY_OPTIONS = ["OTT", "음악", "피트니스", "정기배송", "생산성", "기타"];
+
+export const CATEGORY_COLORS: Record<string, string> = {
+  OTT: "#2a78d6",
+  음악: "#1baf7a",
+  피트니스: "#eda100",
+  정기배송: "#008300",
+  생산성: "#4a3aa7",
+  기타: "#e34948",
+};
+
+export const FALLBACK_CATEGORY_COLOR = "#898781";
