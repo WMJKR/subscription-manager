@@ -31,6 +31,7 @@ export default function RegisterPage() {
   const [nextBillingDate, setNextBillingDate] = useState(todayIsoDate());
   const [isShared, setIsShared] = useState(false);
   const [sharedCountInput, setSharedCountInput] = useState("2");
+  const [isTrial, setIsTrial] = useState(false);
   const [selectedBank, setSelectedBank] = useState(BANK_OPTIONS[0]);
   const [customBankName, setCustomBankName] = useState("");
   const [cardLast4, setCardLast4] = useState("");
@@ -87,6 +88,8 @@ export default function RegisterPage() {
       nextBillingDate,
       bankName: hasCardInfo ? bankName : undefined,
       cardLast4: hasCardInfo ? cardLast4 : undefined,
+      isTrial,
+      trialEndDate: isTrial ? nextBillingDate : undefined,
     });
 
     router.push("/");
@@ -203,13 +206,41 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">다음 결제일</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            {isTrial ? "무료체험 종료일 (다음 결제일과 동일하게 처리)" : "다음 결제일"}
+          </label>
           <input
             type="date"
             value={nextBillingDate}
             onChange={(e) => setNextBillingDate(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
           />
+        </div>
+
+        <div className="rounded-lg border border-gray-200 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-gray-700">무료체험으로 시작하나요?</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isTrial}
+              onClick={() => setIsTrial((v) => !v)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                isTrial ? "bg-indigo-600" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                  isTrial ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+          {isTrial && (
+            <p className="mt-2 text-xs text-gray-400">
+              무료체험 종료일이 다가오면 일반 구독보다 먼저(D-5부터) 알려드려요.
+            </p>
+          )}
         </div>
 
         <div className="rounded-lg border border-gray-200 p-3">

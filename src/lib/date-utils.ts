@@ -67,6 +67,12 @@ export function getTotalSpend(subscriptions: Subscription[]): number {
     .reduce((total, sub) => total + getActualAmount(sub), 0);
 }
 
+/** 이 구독 하나를 해지했을 때 연간 절약되는 금액(내 부담 기준). */
+export function getAnnualSavingsForSub(sub: Subscription): number {
+  const actual = getActualAmount(sub);
+  return sub.billingCycle === "monthly" ? actual * 12 : actual;
+}
+
 export interface CategoryBreakdownItem {
   category: string;
   amount: number;

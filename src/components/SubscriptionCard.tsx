@@ -46,8 +46,13 @@ export default function SubscriptionCard({ subscription, onClick }: Props) {
         {getServiceIcon(subscription.serviceName)}
       </button>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-gray-900">
-          {subscription.serviceName}
+        <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-gray-900">
+          <span className="truncate">{subscription.serviceName}</span>
+          {subscription.isTrial && (
+            <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
+              체험중
+            </span>
+          )}
         </p>
         <p className="text-xs text-gray-500">
           {formatDate(subscription.nextBillingDate)} ·{" "}
