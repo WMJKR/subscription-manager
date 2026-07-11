@@ -21,6 +21,10 @@ export interface Subscription {
   status: SubscriptionStatus;
   createdAt: string; // ISO datetime string
   usageCheckIn?: WeeklyUsageCheckIn;
+  // 결제 카드 구분용 라벨. 결제/인증에는 쓰이지 않으며, 계좌번호 앞 4자리 외에는
+  // 어떤 값도 입력받거나 저장하지 않는다(뒷자리 입력 필드 자체가 존재하지 않음).
+  bankName?: string;
+  cardLast4?: string; // 숫자 4자리 문자열. 반드시 bankName과 함께 설정된다.
 }
 
 export interface UserProfile {

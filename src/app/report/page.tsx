@@ -5,6 +5,7 @@ import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { updateSubscription } from "@/lib/storage";
 import { getActualAmount, getCostPerUse, getWeekKey } from "@/lib/date-utils";
 import { getServiceIcon } from "@/lib/constants";
+import { getCardBreakdown } from "@/lib/card";
 import { Subscription, UsageFrequency } from "@/lib/types";
 
 const FREQUENCY_OPTIONS: { value: UsageFrequency; label: string }[] = [
@@ -48,6 +49,8 @@ export default function ReportPage() {
       return { sub, diff, percent };
     })
     .sort((a, b) => b.percent - a.percent);
+
+  const cardBreakdown = getCardBreakdown(subscriptions);
 
   return (
     <div className="space-y-8">
@@ -174,6 +177,36 @@ export default function ReportPage() {
                   {diff.toLocaleString()}원({percent}%)
                 </span>{" "}
                 올랐어요.
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-gray-700">카드/계좌별 지출</h2>
+        {cardBreakdown.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+            등록된 구독이 없어요.
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {cardBreakdown.map((item, index) => (
+              <li
+                key={item.label}
+                className={`flex items-center justify-between rounded-xl border p-3 ${
+                  index === 0
+                    ? "border-2 border-indigo-500 bg-indigo-50"
+                    : "border-gray-200 bg-white"
+                }`}
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-gray-900">{item.label}</p>
+                  <p className="text-xs text-gray-500">구독 {item.count}개</p>
+                </div>
+                <p className="shrink-0 text-sm font-semibold text-gray-900">
+                  {item.amount.toLocaleString()}원
+                </p>
               </li>
             ))}
           </ul>

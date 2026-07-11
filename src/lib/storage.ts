@@ -11,13 +11,18 @@ function isBrowser(): boolean {
   return typeof window !== "undefined";
 }
 
-// 카테고리/분담/최초금액 필드 도입 이전에 저장된 데이터에는 해당 값이 없을 수 있어 기본값으로 보정한다.
+// 카테고리/분담/최초금액/카드라벨 필드 도입 이전에 저장된 데이터에는 해당 값이 없을 수 있어 기본값으로 보정한다.
 function normalizeSubscription(sub: Subscription): Subscription {
+  // bankName/cardLast4는 항상 짝으로만 유효하다. 하나만 있는 손상된 데이터는 "카드 미지정"으로 취급한다.
+  const hasValidCard = Boolean(sub.bankName && sub.cardLast4 && sub.cardLast4.length === 4);
+
   return {
     ...sub,
     category: sub.category || DEFAULT_CATEGORY,
     sharedCount: sub.sharedCount && sub.sharedCount > 0 ? sub.sharedCount : 1,
     initialAmount: typeof sub.initialAmount === "number" ? sub.initialAmount : sub.amount,
+    bankName: hasValidCard ? sub.bankName : undefined,
+    cardLast4: hasValidCard ? sub.cardLast4 : undefined,
   };
 }
 

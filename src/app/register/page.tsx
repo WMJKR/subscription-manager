@@ -3,10 +3,12 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CATEGORY_OPTIONS, DEFAULT_CATEGORY, SERVICE_PRESETS } from "@/lib/constants";
+import { BANK_OPTIONS } from "@/lib/card";
 import { addSubscription, getUserProfile, saveUserProfile } from "@/lib/storage";
 import { BillingCycle } from "@/lib/types";
 
 const CUSTOM_OPTION = "직접 입력";
+const CUSTOM_BANK_OPTION = "직접 입력";
 
 function todayIsoDate(): string {
   const d = new Date();
@@ -29,10 +31,15 @@ export default function RegisterPage() {
   const [nextBillingDate, setNextBillingDate] = useState(todayIsoDate());
   const [isShared, setIsShared] = useState(false);
   const [sharedCountInput, setSharedCountInput] = useState("2");
+  const [selectedBank, setSelectedBank] = useState(BANK_OPTIONS[0]);
+  const [customBankName, setCustomBankName] = useState("");
+  const [cardLast4, setCardLast4] = useState("");
   const [error, setError] = useState("");
 
   const isCustom = selectedService === CUSTOM_OPTION;
   const preset = SERVICE_PRESETS.find((s) => s.name === selectedService);
+  const isCustomBank = selectedBank === CUSTOM_BANK_OPTION;
+  const hasCardInfo = cardLast4.length === 4;
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -63,6 +70,12 @@ export default function RegisterPage() {
       return;
     }
 
+    const bankName = isCustomBank ? customBankName.trim() : selectedBank;
+    if (hasCardInfo && !bankName) {
+      setError("카드사명을 입력해주세요.");
+      return;
+    }
+
     saveUserProfile({ name: name.trim(), email: email.trim() });
     addSubscription({
       serviceName,
@@ -72,6 +85,8 @@ export default function RegisterPage() {
       sharedCount: Math.round(parsedSharedCount),
       billingCycle,
       nextBillingDate,
+      bankName: hasCardInfo ? bankName : undefined,
+      cardLast4: hasCardInfo ? cardLast4 : undefined,
     });
 
     router.push("/");
@@ -233,6 +248,58 @@ export default function RegisterPage() {
               />
             </div>
           )}
+        </div>
+
+        <div className="rounded-lg border border-gray-200 p-3">
+          <p className="text-sm font-medium text-gray-700">결제 카드 (선택)</p>
+          <p className="mt-1 text-xs text-gray-400">
+            결제/인증 정보가 아니라 카드를 구분하기 위한 라벨이에요. 계좌번호 앞 4자리만
+            입력받고, 뒷자리는 입력받지 않아요.
+          </p>
+
+          <div className="mt-3">
+            <label className="mb-1 block text-sm font-medium text-gray-700">카드사</label>
+            <select
+              value={selectedBank}
+              onChange={(e) => setSelectedBank(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+            >
+              {BANK_OPTIONS.map((bank) => (
+                <option key={bank} value={bank}>
+                  {bank}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {isCustomBank && (
+            <div className="mt-3">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                카드사명 직접 입력
+              </label>
+              <input
+                type="text"
+                value={customBankName}
+                onChange={(e) => setCustomBankName(e.target.value)}
+                placeholder="예: OO저축은행"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+          )}
+
+          <div className="mt-3">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              계좌번호 앞 4자리
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={cardLast4}
+              onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="1234"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+            />
+          </div>
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
