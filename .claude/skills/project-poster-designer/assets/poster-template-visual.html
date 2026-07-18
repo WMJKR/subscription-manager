@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>{{PRODUCT_NAME}} — 프로젝트 포스터</title>
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+  /*
+    스크린샷 중심형(visual) — A2 세로 420mm x 594mm.
+    화면 캡처 자체가 제품을 제일 잘 설명할 때 쓴다. 텍스트는 얇은 마스트헤드로
+    줄이고, 큰 스크린샷 1장이 포스터 절반 가까이를 차지하게 한다.
+    이 파일의 min-height:0 관련 주석은 poster-template-standard.html과 동일한 이유.
+  */
+  :root {
+    --color-main: {{MAIN_COLOR}};
+    --color-accent: {{ACCENT_COLOR}};
+    --color-neutral: {{NEUTRAL_COLOR}};
+    --color-ink: #1A1A1A;
+    --color-paper: #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { width: 420mm; height: 594mm; }
+
+  body {
+    font-family: "Pretendard", -apple-system, sans-serif;
+    color: var(--color-ink);
+    background: var(--color-paper);
+    display: flex;
+    flex-direction: column;
+  }
+
+  @page { size: 420mm 594mm; margin: 0; }
+
+  /* 1. 마스트헤드 — 얇게, 이름/캐치프레이즈를 좌우로 */
+  .masthead {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10mm;
+    padding: 12mm 16mm 8mm;
+    border-bottom: 1mm solid var(--color-ink);
+  }
+  .masthead .product-name {
+    font-size: 17mm;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+  .masthead .catchphrase {
+    font-size: 6mm;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-align: right;
+  }
+
+  /* 2. 문제 제기 — 강조 띠 */
+  .problem {
+    flex: 0 0 auto;
+    padding: 7mm 16mm;
+    background: var(--color-main);
+    color: var(--color-paper);
+    text-align: center;
+    font-size: 6.4mm;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .problem .highlight { color: var(--color-accent); }
+
+  /* 3. 대형 스크린샷 — 포스터의 절반 가까이, 남는 공간을 전부 채움 */
+  .showcase-hero {
+    flex: 1 1 auto;
+    min-height: 0; /* 없으면 이미지 원본비율 때문에 594mm를 넘겨서 흘러넘침 */
+    display: flex;
+    padding: 8mm 16mm;
+    background: var(--color-neutral);
+  }
+  .showcase-hero .frame {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1.5mm solid var(--color-ink);
+    border-radius: 3mm;
+    overflow: hidden;
+    box-shadow: 0 5mm 12mm rgba(0,0,0,0.22);
+  }
+  .showcase-hero .frame .browser-bar {
+    flex: 0 0 auto;
+    height: 8mm;
+    background: var(--color-ink);
+    display: flex;
+    align-items: center;
+    gap: 2mm;
+    padding: 0 4mm;
+  }
+  .showcase-hero .frame .browser-bar span {
+    width: 2.2mm; height: 2.2mm; border-radius: 50%; background: var(--color-paper); opacity: 0.6;
+  }
+  .showcase-hero .frame img,
+  .showcase-hero .frame svg {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  /* 4. 보조 스크린샷 스트립 — 작은 썸네일 최대 2개 */
+  .showcase-strip {
+    flex: 0 0 62mm;
+    display: flex;
+    gap: 6mm;
+    padding: 0 16mm 8mm;
+    background: var(--color-neutral);
+  }
+  .showcase-strip .thumb {
+    flex: 1 1 0;
+    border: 1mm solid var(--color-ink);
+    border-radius: 2mm;
+    overflow: hidden;
+    box-shadow: 0 3mm 8mm rgba(0,0,0,0.15);
+  }
+  .showcase-strip .thumb img,
+  .showcase-strip .thumb svg { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+  /* 5. 기능 3가지 — 번호 매긴 리스트, 카드 없이 타이포로 */
+  .features {
+    flex: 0 0 auto;
+    display: flex;
+    padding: 10mm 16mm;
+    gap: 8mm;
+  }
+  .feature-item { flex: 1 1 0; display: flex; gap: 4mm; }
+  .feature-item .num {
+    font-size: 11mm;
+    font-weight: 800;
+    color: var(--color-accent);
+    line-height: 1;
+  }
+  .feature-item .text { display: flex; flex-direction: column; gap: 2mm; }
+  .feature-item .feature-name { font-size: 5.6mm; font-weight: 700; color: var(--color-main); }
+  .feature-item .feature-desc { font-size: 4mm; line-height: 1.4; color: #4A4A4A; }
+
+  /* 6. 최하단 띠 */
+  .footer {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6mm 16mm;
+    border-top: 0.6mm solid var(--color-neutral);
+  }
+  .footer .author { font-size: 4mm; font-weight: 500; color: #6B6B6B; }
+  .footer .closing-copy { font-size: 4.5mm; font-weight: 700; color: var(--color-main); }
+  .footer .qr-placeholder {
+    width: 18mm; height: 18mm;
+    background: var(--color-neutral);
+    border-radius: 1.5mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-main);
+    font-size: 2.6mm;
+  }
+</style>
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="product-name">{{PRODUCT_NAME}}</div>
+    <div class="catchphrase">{{CATCHPHRASE}}</div>
+  </header>
+
+  <section class="problem">
+    {{PROBLEM_STATEMENT}}
+  </section>
+
+  <section class="showcase-hero">
+    <!-- 가장 핵심 기능을 보여주는 화면 1장. 세로형이면 .frame 안 img를, 가로형 웹이면 browser-bar를 유지 -->
+    <div class="frame">
+      <div class="browser-bar"><span></span><span></span><span></span></div>
+      <img src="{{SCREENSHOT_1_PATH}}" alt="{{SCREENSHOT_1_DESC}}">
+    </div>
+  </section>
+
+  <section class="showcase-strip">
+    <!-- 나머지 스크린샷 최대 2장. 3번째가 없으면 이 div 하나 지우고 .thumb 하나만 남길 것 -->
+    <div class="thumb"><img src="{{SCREENSHOT_2_PATH}}" alt="{{SCREENSHOT_2_DESC}}"></div>
+    <div class="thumb"><img src="{{SCREENSHOT_3_PATH}}" alt="{{SCREENSHOT_3_DESC}}"></div>
+  </section>
+
+  <section class="features">
+    <div class="feature-item">
+      <div class="num">01</div>
+      <div class="text">
+        <div class="feature-name">{{FEATURE_1_NAME}}</div>
+        <div class="feature-desc">{{FEATURE_1_DESC}}</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="num">02</div>
+      <div class="text">
+        <div class="feature-name">{{FEATURE_2_NAME}}</div>
+        <div class="feature-desc">{{FEATURE_2_DESC}}</div>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="num">03</div>
+      <div class="text">
+        <div class="feature-name">{{FEATURE_3_NAME}}</div>
+        <div class="feature-desc">{{FEATURE_3_DESC}}</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="author">{{AUTHOR_NAME}} · Personal Project</div>
+    <div class="closing-copy">{{CLOSING_COPY}}</div>
+    <div class="qr-placeholder">QR</div>
+  </footer>
+
+</body>
+</html>
