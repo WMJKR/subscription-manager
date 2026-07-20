@@ -43,3 +43,6 @@ next-env.d.ts
 # local tooling state (not project source)
 .omc/
 .claude/settings.local.json
+
+.vercel
+.env*
