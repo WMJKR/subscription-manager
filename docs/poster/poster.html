@@ -146,10 +146,18 @@
     gap: 3mm;
   }
   .feature-card .icon {
-    width: 10mm; height: 10mm;
-    /* PRD 근거 아이콘: 이모지 대신 간단한 SVG/CSS 도형으로 교체할 것 */
+    width: fit-content;
+    height: 7mm;
+    padding: 0 3mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: var(--color-accent);
-    border-radius: 2mm;
+    border-radius: 3.5mm;
+    color: var(--color-paper);
+    font-size: 3.4mm;
+    font-weight: 700;
+    letter-spacing: 0.3mm;
   }
   .feature-card .feature-name {
     font-size: 6mm;
@@ -220,24 +228,24 @@
 
   <section class="features">
     <div class="feature-card">
-      <div class="icon"></div>
+      <div class="icon">STEP 1</div>
       <div class="feature-name">구독 등록</div>
       <div class="feature-desc">서비스명·금액·결제주기·다음 결제일만 입력하면 끝</div>
     </div>
     <div class="feature-card">
-      <div class="icon"></div>
+      <div class="icon">STEP 2</div>
       <div class="feature-name">갱신일 알림</div>
-      <div class="feature-desc">결제 D-3·D-1 알림과 캘린더로 결제일을 한눈에</div>
+      <div class="feature-desc">원하는 알림 날짜를 정해 캘린더로 편하게</div>
     </div>
     <div class="feature-card">
-      <div class="icon"></div>
+      <div class="icon">STEP 3</div>
       <div class="feature-name">지출 대시보드</div>
       <div class="feature-desc">이번 달 총 지출액과 서비스별 비중을 한눈에</div>
     </div>
   </section>
 
   <footer class="footer">
-    <div class="author">원민재 · Personal Project</div>
+    <div class="author">원민재 · 개인PRD</div>
     <div class="closing-copy">이제, 새는 돈을 잡으세요</div>
     <div class="qr-placeholder">QR</div>
   </footer>
