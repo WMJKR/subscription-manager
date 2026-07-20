@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NOTIFICATION_THRESHOLD_OPTIONS } from "@/lib/constants";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
-import { getDDay } from "@/lib/date-utils";
+import { formatDDay, getDDay } from "@/lib/date-utils";
 import { getAnnualSavingsForSub } from "@/lib/spending-metrics";
 import {
   addToGoalSavings,
@@ -27,14 +27,38 @@ export default function NotificationsPage() {
   const [modalStep, setModalStep] = useState<"confirm" | "goal">("confirm");
   const [goalChoice, setGoalChoice] = useState(GOAL_PRESETS[0]);
   const [customGoalName, setCustomGoalName] = useState("");
+  const [notificationPermission, setNotificationPermission] = useState<
+    NotificationPermission | "unsupported"
+  >("default");
+  const notifiedIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     setThreshold(getNotificationThreshold());
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setNotificationPermission("unsupported");
+      return;
+    }
+    setNotificationPermission(Notification.permission);
+  }, []);
+
   function handleThresholdChange(value: NotificationThreshold) {
     setThreshold(value);
     saveNotificationThreshold(value);
+  }
+
+  function handleRequestNotificationPermission() {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    Notification.requestPermission().then((result) => {
+      setNotificationPermission(result);
+      if (result === "granted") {
+        new Notification("알림이 켜졌어요!", {
+          body: "결제 예정 구독을 브라우저 알림으로 알려드릴게요.",
+        });
+      }
+    });
   }
 
   const upcoming = subscriptions
@@ -46,6 +70,21 @@ export default function NotificationsPage() {
       return dDay <= effectiveThreshold;
     })
     .sort((a, b) => getDDay(a.nextBillingDate) - getDDay(b.nextBillingDate));
+
+  // 허용된 뒤로는 알림 시점 목록에 새로 나타난 구독마다 브라우저 알림을 한 번씩 띄운다.
+  // 탭이 열려있는 동안만 동작하며(서비스 워커 없음), 같은 구독을 반복해서 알리지 않도록
+  // 세션 동안 알린 id를 기억한다.
+  useEffect(() => {
+    if (notificationPermission !== "granted") return;
+    for (const sub of upcoming) {
+      if (notifiedIdsRef.current.has(sub.id)) continue;
+      notifiedIdsRef.current.add(sub.id);
+      const dDay = getDDay(sub.nextBillingDate);
+      new Notification(`${sub.serviceName} 결제 예정`, {
+        body: `${formatDDay(dDay)} · ${sub.amount.toLocaleString()}원`,
+      });
+    }
+  }, [notificationPermission, upcoming]);
 
   function openModal(sub: Subscription) {
     setSelected(sub);
@@ -89,6 +128,30 @@ export default function NotificationsPage() {
         <h1 className="text-xl font-bold text-gray-900">알림</h1>
         <p className="mt-1 text-sm text-gray-500">결제 예정인 구독을 확인하고 관리하세요.</p>
       </header>
+
+      {notificationPermission !== "unsupported" && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-gray-700">🔔 브라우저 알림</p>
+            <p className="mt-0.5 text-xs text-gray-400">
+              {notificationPermission === "granted"
+                ? "결제 예정 구독을 브라우저 알림으로 받고 있어요."
+                : notificationPermission === "denied"
+                  ? "알림이 차단되어 있어요. 브라우저 설정에서 허용해주세요."
+                  : "결제 예정 구독을 브라우저 알림으로 받아보세요."}
+            </p>
+          </div>
+          {notificationPermission === "default" && (
+            <button
+              type="button"
+              onClick={handleRequestNotificationPermission}
+              className="shrink-0 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+            >
+              알림 허용
+            </button>
+          )}
+        </div>
+      )}
 
       <div>
         <span className="mb-1 block text-sm font-medium text-gray-700">알림 시점</span>

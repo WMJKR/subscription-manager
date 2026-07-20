@@ -2,13 +2,12 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CATEGORY_OPTIONS, DEFAULT_CATEGORY, SERVICE_PRESETS } from "@/lib/constants";
+import { DEFAULT_CATEGORY, SERVICE_PRESETS } from "@/lib/constants";
 import { BANK_OPTIONS } from "@/lib/card";
 import { addSubscription, getUserProfile, saveUserProfile } from "@/lib/storage";
 import { BillingCycle } from "@/lib/types";
 import ServiceSelect from "@/components/ServiceSelect";
 
-const CUSTOM_OPTION = "직접 입력";
 const CUSTOM_BANK_OPTION = "직접 입력";
 
 function todayIsoDate(): string {
@@ -25,8 +24,6 @@ export default function RegisterPage() {
   const [name, setName] = useState(existingUser?.name ?? "");
   const [email, setEmail] = useState(existingUser?.email ?? "");
   const [selectedService, setSelectedService] = useState(SERVICE_PRESETS[0].name);
-  const [customName, setCustomName] = useState("");
-  const [customCategory, setCustomCategory] = useState(DEFAULT_CATEGORY);
   const [amount, setAmount] = useState("");
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [nextBillingDate, setNextBillingDate] = useState(todayIsoDate());
@@ -38,7 +35,6 @@ export default function RegisterPage() {
   const [cardLast4, setCardLast4] = useState("");
   const [error, setError] = useState("");
 
-  const isCustom = selectedService === CUSTOM_OPTION;
   const preset = SERVICE_PRESETS.find((s) => s.name === selectedService);
   const isCustomBank = selectedBank === CUSTOM_BANK_OPTION;
   const hasCardInfo = cardLast4.length === 4;
@@ -47,7 +43,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
-    const serviceName = isCustom ? customName.trim() : selectedService;
+    const serviceName = selectedService;
     const parsedAmount = Number(amount);
     const parsedSharedCount = isShared ? Number(sharedCountInput) : 1;
 
@@ -81,7 +77,7 @@ export default function RegisterPage() {
     saveUserProfile({ name: name.trim(), email: email.trim() });
     addSubscription({
       serviceName,
-      category: isCustom ? customCategory : preset?.category ?? DEFAULT_CATEGORY,
+      category: preset?.category ?? DEFAULT_CATEGORY,
       amount: parsedAmount,
       initialAmount: parsedAmount,
       sharedCount: Math.round(parsedSharedCount),
@@ -133,35 +129,6 @@ export default function RegisterPage() {
           <label className="mb-1 block text-sm font-medium text-gray-700">구독 서비스</label>
           <ServiceSelect value={selectedService} onChange={setSelectedService} />
         </div>
-
-        {isCustom && (
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">서비스명 직접 입력</label>
-              <input
-                type="text"
-                value={customName}
-                onChange={(e) => setCustomName(e.target.value)}
-                placeholder="예: 회사 헬스장"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">카테고리</label>
-              <select
-                value={customCategory}
-                onChange={(e) => setCustomCategory(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-              >
-                {CATEGORY_OPTIONS.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">결제금액 (원)</label>

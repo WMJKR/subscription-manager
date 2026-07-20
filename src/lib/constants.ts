@@ -6,6 +6,9 @@ export interface ServicePreset {
   icon: string;
 }
 
+// 실제 서비스 사이트로 직접 이동 가능한(deeplinks.ts에 매핑이 있는) 프리셋만 유지한다.
+// 카테고리형 항목(헬스장/정기배송/클라우드 저장소)과 "직접 입력"은 이동 가능한 사이트가
+// 없어 제외했다 — 커스텀 서비스명 입력 자체도 이제 지원하지 않는다.
 export const SERVICE_PRESETS: ServicePreset[] = [
   { name: "넷플릭스", category: "OTT", icon: "🎬" },
   { name: "유튜브 프리미엄", category: "OTT", icon: "▶️" },
@@ -16,11 +19,7 @@ export const SERVICE_PRESETS: ServicePreset[] = [
   { name: "스포티파이", category: "음악", icon: "🎵" },
   { name: "멜론", category: "음악", icon: "🍈" },
   { name: "애플뮤직", category: "음악", icon: "🎧" },
-  { name: "헬스장", category: "피트니스", icon: "💪" },
   { name: "쿠팡 와우", category: "정기배송", icon: "📦" },
-  { name: "정기배송", category: "정기배송", icon: "🚚" },
-  { name: "클라우드 저장소", category: "생산성", icon: "☁️" },
-  { name: "직접 입력", category: "기타", icon: "✏️" },
 ];
 
 export const NOTIFICATION_THRESHOLD_OPTIONS: { label: string; value: NotificationThreshold }[] = [
