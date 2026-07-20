@@ -1,8 +1,9 @@
 import type { KeyboardEvent, MouseEvent } from "react";
-import { getServiceIcon } from "@/lib/constants";
 import { getServiceDeepLink } from "@/lib/deeplinks";
-import { formatDate, formatDDay, getActualAmount, getDDay } from "@/lib/date-utils";
+import { formatDate, formatDDay, getDDay } from "@/lib/date-utils";
+import { getActualAmount } from "@/lib/spending-metrics";
 import { Subscription } from "@/lib/types";
+import ServiceIcon from "./ServiceIcon";
 
 interface Props {
   subscription: Subscription;
@@ -56,10 +57,10 @@ export default function SubscriptionCard({ subscription, onClick, onDelete }: Pr
       <button
         type="button"
         onClick={handleIconClick}
-        className="text-2xl leading-none"
+        className="cursor-pointer leading-none"
         aria-label={`${subscription.serviceName} 결제 관리로 이동`}
       >
-        {getServiceIcon(subscription.serviceName)}
+        <ServiceIcon serviceName={subscription.serviceName} size="lg" />
       </button>
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-gray-900">

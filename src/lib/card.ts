@@ -1,4 +1,4 @@
-import { getActualAmount } from "./date-utils";
+import { getActualAmount } from "./spending-metrics";
 import { Subscription } from "./types";
 
 // 이 파일이 다루는 "카드 라벨"은 결제/인증 수단이 아니라, 사용자가 같은 카드사의

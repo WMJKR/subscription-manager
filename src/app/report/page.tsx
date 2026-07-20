@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { updateSubscription } from "@/lib/storage";
-import { getActualAmount, getCostPerUse, getWeekKey } from "@/lib/date-utils";
+import { getActualAmount } from "@/lib/spending-metrics";
+import { getCostPerUse, getWeekKey } from "@/lib/usage-checkin";
 import { getServiceIcon } from "@/lib/constants";
 import { getCardBreakdown } from "@/lib/card";
+import { getSubscriptionHistory } from "@/lib/subscription-history";
 import { Subscription, UsageFrequency } from "@/lib/types";
 
 const FREQUENCY_OPTIONS: { value: UsageFrequency; label: string }[] = [
@@ -51,6 +53,7 @@ export default function ReportPage() {
     .sort((a, b) => b.percent - a.percent);
 
   const cardBreakdown = getCardBreakdown(subscriptions);
+  const subscriptionHistory = getSubscriptionHistory(subscriptions);
 
   return (
     <div className="space-y-8">
@@ -207,6 +210,40 @@ export default function ReportPage() {
                 <p className="shrink-0 text-sm font-semibold text-gray-900">
                   {item.amount.toLocaleString()}원
                 </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-gray-700">재구독 이력</h2>
+        {subscriptionHistory.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+            아직 해지한 적 있는 구독이 없어요.
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {subscriptionHistory.map((item) => (
+              <li
+                key={item.serviceName}
+                className="rounded-xl border border-gray-200 bg-white p-3"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xl leading-none">{getServiceIcon(item.serviceName)}</span>
+                  <p className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-900">
+                    {item.serviceName}
+                  </p>
+                  {item.isActive && (
+                    <span className="shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                      재구독 중
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1.5 flex items-center justify-between text-xs text-gray-500">
+                  <span>해지 {item.cancelCount}회</span>
+                  <span>누적 연간 환산 지출 약 {item.totalApproxAnnualSpend.toLocaleString()}원</span>
+                </div>
               </li>
             ))}
           </ul>

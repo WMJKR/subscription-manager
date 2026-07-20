@@ -1,13 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { NOTIFICATION_THRESHOLD_OPTIONS, NOTIFICATION_THRESHOLD_STORAGE_KEY } from "@/lib/constants";
+import { NOTIFICATION_THRESHOLD_OPTIONS } from "@/lib/constants";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
-import { getAnnualSavingsForSub, getDDay } from "@/lib/date-utils";
-import { addToGoalSavings, getGoal, updateSubscription } from "@/lib/storage";
+import { getDDay } from "@/lib/date-utils";
+import { getAnnualSavingsForSub } from "@/lib/spending-metrics";
+import {
+  addToGoalSavings,
+  getGoal,
+  getNotificationThreshold,
+  saveNotificationThreshold,
+  updateSubscription,
+} from "@/lib/storage";
 import SubscriptionCard from "@/components/SubscriptionCard";
 import BillingCalendar from "@/components/BillingCalendar";
-import { Subscription } from "@/lib/types";
+import { NotificationThreshold, Subscription } from "@/lib/types";
 
 const TRIAL_LEAD_DAYS = 5;
 const GOAL_PRESETS = ["여행자금", "비상금", "취미"];
@@ -15,20 +22,19 @@ const CUSTOM_GOAL_OPTION = "직접 입력";
 
 export default function NotificationsPage() {
   const { subscriptions, isLoaded, refresh } = useSubscriptions();
-  const [threshold, setThreshold] = useState(3);
+  const [threshold, setThreshold] = useState<NotificationThreshold>(3);
   const [selected, setSelected] = useState<Subscription | null>(null);
   const [modalStep, setModalStep] = useState<"confirm" | "goal">("confirm");
   const [goalChoice, setGoalChoice] = useState(GOAL_PRESETS[0]);
   const [customGoalName, setCustomGoalName] = useState("");
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(NOTIFICATION_THRESHOLD_STORAGE_KEY);
-    if (saved) setThreshold(Number(saved));
+    setThreshold(getNotificationThreshold());
   }, []);
 
-  function handleThresholdChange(value: number) {
+  function handleThresholdChange(value: NotificationThreshold) {
     setThreshold(value);
-    window.localStorage.setItem(NOTIFICATION_THRESHOLD_STORAGE_KEY, String(value));
+    saveNotificationThreshold(value);
   }
 
   const upcoming = subscriptions
@@ -86,7 +92,7 @@ export default function NotificationsPage() {
 
       <div>
         <span className="mb-1 block text-sm font-medium text-gray-700">알림 시점</span>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {NOTIFICATION_THRESHOLD_OPTIONS.map((opt) => (
             <button
               key={opt.value}

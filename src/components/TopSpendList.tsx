@@ -1,5 +1,5 @@
-import { getServiceIcon } from "@/lib/constants";
-import { TopSubscriptionItem } from "@/lib/date-utils";
+import { TopSubscriptionItem } from "@/lib/spending-metrics";
+import ServiceIcon from "./ServiceIcon";
 
 interface Props {
   items: TopSubscriptionItem[];
@@ -18,7 +18,7 @@ export default function TopSpendList({ items }: Props) {
             <span className="w-5 shrink-0 text-center text-sm font-bold text-gray-400">
               {index + 1}
             </span>
-            <span className="text-xl leading-none">{getServiceIcon(item.serviceName)}</span>
+            <ServiceIcon serviceName={item.serviceName} size="md" />
             <span className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-900">
               {item.serviceName}
             </span>

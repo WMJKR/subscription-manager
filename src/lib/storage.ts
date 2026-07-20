@@ -1,6 +1,6 @@
 import { DEFAULT_CATEGORY } from "./constants";
 import { getDDay } from "./date-utils";
-import { SavingsGoal, Subscription, UserProfile } from "./types";
+import { NotificationThreshold, SavingsGoal, Subscription, UserProfile } from "./types";
 
 // 프로토타입 단계: 브라우저 localStorage로 데이터를 관리한다.
 // TODO: 추후 Supabase 등 실제 백엔드로 교체 예정.
@@ -8,6 +8,8 @@ import { SavingsGoal, Subscription, UserProfile } from "./types";
 const SUBSCRIPTIONS_KEY = "sm_subscriptions";
 const USER_KEY = "sm_user";
 const GOAL_KEY = "sm_goal";
+const NOTIFICATION_THRESHOLD_KEY = "sm_notification_threshold";
+const DEFAULT_NOTIFICATION_THRESHOLD: NotificationThreshold = 3;
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
@@ -120,4 +122,20 @@ export function addToGoalSavings(goalName: string, amount: number): SavingsGoal 
   };
   saveGoal(goal);
   return goal;
+}
+
+/** 손상되거나(문자열 아님, 범위 밖) 저장된 적 없는 값은 기본값(D-3)으로 보정한다. */
+export function getNotificationThreshold(): NotificationThreshold {
+  if (!isBrowser()) return DEFAULT_NOTIFICATION_THRESHOLD;
+  const raw = window.localStorage.getItem(NOTIFICATION_THRESHOLD_KEY);
+  if (raw === null) return DEFAULT_NOTIFICATION_THRESHOLD;
+  const parsed = Number(raw);
+  return Number.isInteger(parsed) && parsed >= 0 && parsed <= 7
+    ? (parsed as NotificationThreshold)
+    : DEFAULT_NOTIFICATION_THRESHOLD;
+}
+
+export function saveNotificationThreshold(value: NotificationThreshold): void {
+  if (!isBrowser()) return;
+  window.localStorage.setItem(NOTIFICATION_THRESHOLD_KEY, String(value));
 }

@@ -9,14 +9,14 @@ import TopSpendList from "@/components/TopSpendList";
 import { downloadICS } from "@/lib/ics";
 import { deleteSubscription, getGoal, saveGoal } from "@/lib/storage";
 import { SavingsGoal, Subscription } from "@/lib/types";
+import { getDDay } from "@/lib/date-utils";
 import {
   getAnnualTotal,
   getCategoryBreakdown,
-  getDDay,
   getThisMonthTotal,
   getTopSubscriptions,
   getTotalSpend,
-} from "@/lib/date-utils";
+} from "@/lib/spending-metrics";
 
 export default function DashboardPage() {
   const { subscriptions, isLoaded, refresh } = useSubscriptions();

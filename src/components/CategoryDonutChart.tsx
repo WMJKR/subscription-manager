@@ -1,5 +1,5 @@
 import { CATEGORY_COLORS, FALLBACK_CATEGORY_COLOR } from "@/lib/constants";
-import { CategoryBreakdownItem } from "@/lib/date-utils";
+import { CategoryBreakdownItem } from "@/lib/spending-metrics";
 
 const RADIUS = 15.915; // circumference = 100, so each 1% of data = 1 unit of stroke-dasharray
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;

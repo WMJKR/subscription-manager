@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { getServiceIcon } from "@/lib/constants";
 import { getBillingDaysInMonth } from "@/lib/date-utils";
 import { Subscription } from "@/lib/types";
+import ServiceIcon from "./ServiceIcon";
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -119,7 +119,7 @@ export default function BillingCalendar({ subscriptions }: Props) {
           <ul className="space-y-2">
             {selectedSubs.map((sub) => (
               <li key={sub.id} className="flex items-center gap-2 text-sm">
-                <span className="text-base leading-none">{getServiceIcon(sub.serviceName)}</span>
+                <ServiceIcon serviceName={sub.serviceName} size="sm" />
                 <span className="min-w-0 flex-1 truncate text-gray-700">{sub.serviceName}</span>
                 <span className="shrink-0 font-semibold text-gray-900">
                   {sub.amount.toLocaleString()}원

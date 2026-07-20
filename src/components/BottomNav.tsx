@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { markAppHydrated } from "@/hooks/useSubscriptions";
 
 const NAV_ITEMS = [
   { href: "/", label: "홈", icon: "🏠" },
@@ -12,6 +14,12 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+
+  // 모든 페이지에 항상 마운트되는 공통 레이아웃이라, 하이드레이션이 끝난 직후
+  // (앱에서 처음 방문한 페이지가 무엇이든) 이 시점에 플래그를 세워둘 수 있다.
+  useEffect(() => {
+    markAppHydrated();
+  }, []);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-10 border-t border-gray-200 bg-white">

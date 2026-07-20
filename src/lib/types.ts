@@ -41,4 +41,4 @@ export interface SavingsGoal {
   goalSavedAmount: number;
 }
 
-export type NotificationThreshold = 0 | 1 | 3;
+export type NotificationThreshold = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;

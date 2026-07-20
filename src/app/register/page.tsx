@@ -6,6 +6,7 @@ import { CATEGORY_OPTIONS, DEFAULT_CATEGORY, SERVICE_PRESETS } from "@/lib/const
 import { BANK_OPTIONS } from "@/lib/card";
 import { addSubscription, getUserProfile, saveUserProfile } from "@/lib/storage";
 import { BillingCycle } from "@/lib/types";
+import ServiceSelect from "@/components/ServiceSelect";
 
 const CUSTOM_OPTION = "직접 입력";
 const CUSTOM_BANK_OPTION = "직접 입력";
@@ -130,17 +131,7 @@ export default function RegisterPage() {
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">구독 서비스</label>
-          <select
-            value={selectedService}
-            onChange={(e) => setSelectedService(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-          >
-            {SERVICE_PRESETS.map((s) => (
-              <option key={s.name} value={s.name}>
-                {s.icon} {s.name}
-              </option>
-            ))}
-          </select>
+          <ServiceSelect value={selectedService} onChange={setSelectedService} />
         </div>
 
         {isCustom && (

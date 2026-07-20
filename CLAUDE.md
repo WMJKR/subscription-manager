@@ -99,3 +99,144 @@
 ### 다음에 할 일
 - Vercel 배포
 - (아이디어) 또래 대비 지출 비교, 중복 카테고리 경고
+
+---
+
+## 2026-07-14 (date-utils.ts 3분할 리팩토링)
+
+기능 추가 없이, 비대해진 `src/lib/date-utils.ts`(187줄, 5개 도메인 혼재)를 관심사별로 3개 파일로 분리하는 순수 리팩토링만 진행했다. 함수 본문은 전혀 수정하지 않고 파일 이동 + import/export 정리만 했다.
+
+### 파일 분리 내역
+
+- **`src/lib/date-utils.ts`** (유지, 순수 날짜 유틸만 남김): `getDDay`, `formatDDay`, `formatDate`, `isSameMonthAsToday`, `getBillingDaysInMonth`(+ private `startOfDay`)
+- **`src/lib/spending-metrics.ts`** (신규): `getActualAmount`, `getThisMonthTotal`, `getAnnualTotal`, `getTotalSpend`, `getCategoryBreakdown`(+ `CategoryBreakdownItem`), `getTopSubscriptions`(+ `TopSubscriptionItem`), `getAnnualSavingsForSub`. `date-utils.ts`의 `isSameMonthAsToday`를 import해서 사용(`getThisMonthTotal`)
+- **`src/lib/usage-checkin.ts`** (신규): `getWeekKey`, `getMonthlyActualAmount`, `getCostPerUse`, `USAGE_REPRESENTATIVE_COUNT`. 기존에 export돼 있었지만 외부에서 쓰인 적 없던 `monthlyEquivalent`는 이 파일 안에서만 쓰이는 private 함수로 전환(다른 파일에서 import하는 곳이 없음을 확인 후 진행)
+
+### import 경로 업데이트한 파일
+`src/lib/card.ts`, `src/app/page.tsx`, `src/app/notifications/page.tsx`, `src/app/report/page.tsx`, `src/components/SubscriptionCard.tsx`, `src/components/TopSpendList.tsx`, `src/components/CategoryDonutChart.tsx` — 총 7개 파일. `src/lib/storage.ts`, `src/components/BillingCalendar.tsx`는 `date-utils.ts`에 남은 함수만 썼으므로 변경 없음.
+
+### 검증
+- `npx tsc --noEmit` 통과
+- `npm run build -- --webpack` 통과 (이 PC의 한글 경로 때문에 Turbopack은 패닉 — 새 PC 세팅 시 확인된 환경 이슈, 아래 참고)
+- Playwright 헤드리스로 `/register`(실제 폼 제출) → `/`(대시보드 집계: 연간환산/Top3/카테고리 비중) → `/notifications`(D-day/절약액/결제 캘린더 점 표시) → `/report`(카드별 지출/가격인상 배지/사용량 체크인 클릭→회당비용) 전체 플로우 재검증, 375px 모바일 레이아웃 포함 콘솔 에러 0건 확인
+
+### 참고: 이번 리팩토링과 무관하게 발견한 기존 동작
+- `/register` 폼 제출(`router.push("/")`, 클라이언트 사이드 소프트 네비게이션) 직후에는 대시보드가 방금 등록한 구독을 바로 반영하지 못하고, 새로고침해야 반영됨. `git diff`로 `page.tsx`에 import 문 2줄 외 변경이 없음을 확인해, 이번 리팩토링이 원인이 아니라 기존부터 있던 동작임을 확인함. 이번 스코프 밖이라 손대지 않음 — 별도 이슈로 다룰 것
+- 이 PC(폴더 경로에 한글 "바탕 화면" 포함)에서는 Turbopack이 UTF-8 바이트 경계 패닉을 일으켜 `npm run dev`/`npm run build`가 기본값으로는 실패함. `--webpack` 플래그를 붙여야 정상 동작(새 PC 세팅 시 확인된 환경 이슈, 코드와 무관)
+
+### 다음에 할 일
+- Vercel 배포
+- (아이디어) 또래 대비 지출 비교, 중복 카테고리 경고
+- register 폼 제출 후 대시보드 미반영(새로고침 필요) 이슈 확인 및 수정 검토
+- date-utils.ts 3분할에 이어, card.ts와의 관계 정리 여부 검토(현재는 card.ts가 spending-metrics.ts를 import하는 구조로 자연스럽게 연결됨)
+
+---
+
+## 2026-07-14 (버그 수정: /register 등록 후 대시보드 미반영)
+
+### 진단
+- `/register`의 `handleSubmit`은 `addSubscription()` 저장 후 `router.push("/")`만 호출(client-side 소프트 네비게이션), `router.refresh()`는 쓰지 않음
+- `useSubscriptions` 훅은 `sm_subscriptions_updated`(커스텀, 같은 탭에서도 감지됨) + `storage`(네이티브, 다른 탭 전용) 두 이벤트를 리스닝하지만, 초기 데이터는 마운트 시점의 `useEffect` 안에서만 `getSubscriptions()`로 채워짐(`useState<Subscription[]>([])`로 빈 배열 시작)
+- 임시 로깅으로 실측한 결과, 커스텀 이벤트는 `saveSubscriptions()`에서 정상적으로 디스패치되고 있었음 — 문제는 이벤트 누락이 아니라, **대시보드 컴포넌트가 클라이언트 사이드 라우트 전환으로 마운트된 뒤 `useEffect`가 실행되기까지 사이에, 초기값인 빈 배열이 그대로 그려지는 순간이 존재**한다는 것. 이 앱의 모든 라우트가 정적 프리렌더링(`○ Static`)이라, 서버가 만든 빈 배열 HTML과 하이드레이션 시점 클라이언트의 첫 렌더가 반드시 일치해야 해서(하이드레이션 불일치 방지), 원래 코드는 의도적으로 "빈 배열로 시작 → 마운트 후 effect에서 채움" 패턴을 쓰고 있었음
+- 즉 (a) 이벤트 디스패치/구독 자체의 문제도 아니고, (b) client-side 이벤트 동기화 구조 자체가 근본적으로 불안정한 것도 아니며, 초기 데이터를 effect 안에서만 채우는 하이드레이션-안전 패턴이 클라이언트 사이드 네비게이션 직후에는 짧은 "빈 상태" 프레임을 만들어낸다는 것이 정확한 원인이었음
+
+### 수정 내역
+- `src/hooks/useSubscriptions.ts`: 모듈 전역 플래그 `hasHydratedOnce`(+ `markAppHydrated()` export) 도입. `useState`의 lazy initializer가 `hasHydratedOnce`가 true일 때만 `getSubscriptions()`를 동기적으로 읽고, 아직 하이드레이션 전이면(false) 기존과 동일하게 빈 배열로 시작 — 하이드레이션 안전성은 그대로 유지
+- `src/components/BottomNav.tsx`: 모든 페이지에 항상 마운트되는 공통 레이아웃 컴포넌트라는 점을 이용해, 마운트 이펙트(하이드레이션 완료 직후 1회 실행)에서 `markAppHydrated()`를 호출. 이후 앱 내에서 일어나는 모든 클라이언트 사이드 라우트 전환(예: `/register` 등록 후 `/`로 이동)은 하이드레이션을 다시 거치지 않으므로, 그 시점부터는 `useSubscriptions`가 새로 마운트될 때 곧바로 최신 localStorage 값을 읽어와도 안전함
+- 첫 시도로 `hasHydratedOnce` 플래그 없이 무조건 동기 초기화하는 방식을 적용했다가, 정적 프리렌더링 페이지를 새로고침/직접 URL 접근으로 진입할 때 하이드레이션 에러(서버 HTML은 빈 배열, 클라이언트 첫 렌더는 실제 데이터)가 발생하는 것을 검증 중 발견해 즉시 폐기하고 위 방식으로 교체함 — 정적 프리렌더링을 쓰는 이 구조에서는 반드시 "최초 하이드레이션 이전/이후"를 구분해야 함
+
+### 검증
+- `npx tsc --noEmit` 통과
+- `npm run build -- --webpack` 통과, `npm run start`(프로덕션)로도 재검증 (이 PC의 한글 경로 때문에 Turbopack은 패닉 — `--webpack` 플래그 필수, 기존에 확인된 환경 이슈)
+- Playwright 헤드리스로 핵심 재현 시나리오(`/register`에서 폼 제출 → `router.push`로 `/` 이동, **새로고침 없이** 곧바로 방금 등록한 구독이 목록/총액/등록 개수에 반영되는지)를 5회 반복 확인, 전부 통과. 개발 서버·프로덕션 서버 양쪽에서 확인
+- 하이드레이션 에러 재발 여부를 포함해 4개 라우트(`/register`, `/`, `/notifications`, `/report`) 전체 플로우 + 375px 모바일 레이아웃 재검증, 콘솔/페이지 에러 0건
+- `/report`의 카드별 지출·가격인상 배지·사용량 체크인→회당비용, `/notifications`의 D-day·절약액까지 데이터 정합성도 함께 재확인(모두 정상)
+
+### 다음에 할 일
+- Vercel 배포
+- (아이디어) 또래 대비 지출 비교, 중복 카테고리 경고
+
+---
+
+## 2026-07-14 (알림 시점 D-7~당일 8단계로 확장 + storage.ts 임계값 편입)
+
+### 진단 (변경 전 확인)
+- 기존 필터 로직(`notifications/page.tsx`)은 `dDay <= threshold`(무료체험은 `Math.max(threshold, 5)`)로, "정확히 그 날짜"가 아니라 **"그 날짜 이내(선택한 기간 내)"를 보여주는 누적/포함 방식**이었음. 화면 문구 "선택한 기간 내 결제 예정인 구독이 없어요"도 이 포함 방식과 정확히 일치 — 로직과 문구 사이 불일치 없음을 확인
+- 따라서 옵션 배열(`NOTIFICATION_THRESHOLD_OPTIONS`)만 8개로 늘리면 필터 로직 자체는 손댈 필요가 없었음(값이 하드코딩돼 있지 않고 옵션 목록을 그대로 순회하는 구조라 자연스럽게 확장됨)
+
+### 변경 내역
+- **타입**: `NotificationThreshold`를 `0 | 1 | 3` → `0 | 1 | 2 | 3 | 4 | 5 | 6 | 7`로 확장(`src/lib/types.ts`). 기존에는 선언만 있고 실제로 어디서도 쓰이지 않던 죽은 타입이었는데, 이번에 옵션 배열·`useState`·storage 함수 시그니처에 실제로 연결함
+- **옵션 배열**: `NOTIFICATION_THRESHOLD_OPTIONS`를 D-7~D-1(라벨 "D-7"~"D-1")과 "당일" 8개로 확장(`src/lib/constants.ts`). 라벨은 카드에 이미 쓰이는 `formatDDay`의 "D-N" 표기와 통일해 짧게 유지(375px 대응)
+- **storage.ts 편입**: 지난 리팩토링 분석에서 지적됐던 "notifications 페이지가 storage.ts를 거치지 않고 `window.localStorage`를 직접 호출"하는 예외를 이번에 없앰. `getNotificationThreshold()`/`saveNotificationThreshold()`를 `storage.ts`에 추가하고, 저장된 값이 없거나(첫 방문) 정수가 아니거나 0~7 범위를 벗어나면(손상된 값) 기본값(D-3)으로 보정하는 방어 로직을 넣음. `notifications/page.tsx`는 이제 이 두 함수만 호출
+- **마이그레이션**: 기존에 저장돼 있던 3/1/0 값은 새 0~7 범위에 그대로 포함되므로 별도 마이그레이션 불필요. 손상된/구버전 이전 값에 대한 방어만 위 fallback으로 처리
+- **UI**: 버튼 그룹을 `grid-cols-3` → `grid-cols-4`(2행×4열)로 변경. 375px에서 가로 스크롤 없이 겹침·잘림 없이 배치됨을 스크린샷으로 확인. 선택된 항목 강조 스타일(인디고 테두리/배경)은 그대로 유지
+- 결제 캘린더, 알림 목록, 해지 모달 등 다른 화면 요소는 변경하지 않음
+
+### 검증
+- `npx tsc --noEmit`, `npm run build -- --webpack` 통과
+- Playwright로 9개 구독을 D-0~D-8에 시딩해 8개 임계값 버튼을 모두 클릭하며 필터링 결과(threshold별로 정확히 `threshold+1`개 노출)를 확인 — 전부 일치
+- 저장값 영속성(새로고침 후 유지), 레거시 저장값(3/1/0) 정상 동작, 손상된 저장값("garbage") 시 기본값(D-3)으로 폴백까지 확인
+- 375px 스크린샷으로 8개 버튼이 2행×4열로 겹침/잘림 없이 배치되는 것 확인
+- 기존 4개 라우트 전체 플로우(`/register` 폼 제출 → 대시보드 즉시 반영 포함) + 375px 모바일 재검증, 콘솔/페이지 에러 0건
+
+### 다음에 할 일
+- Vercel 배포
+- (아이디어) 또래 대비 지출 비교, 중복 카테고리 경고
+
+---
+
+## 2026-07-14 (실제 브랜드 아이콘 적용 + 등록 드롭다운 카테고리 그룹화)
+
+### 완료한 작업 요약
+- **실제 브랜드 아이콘**: `simple-icons`(CC0) 패키지를 설치해 서비스 아이콘을 공식 브랜드 컬러 SVG로 교체. 프리셋 14개 중 simple-icons에 실제로 등록된 브랜드는 **넷플릭스/유튜브 프리미엄(YouTube)/스포티파이/애플뮤직 4개뿐**이었음 — 디즈니플러스·왓챠·웨이브·티빙·멜론·쿠팡 와우는 한국 로컬 서비스라 simple-icons(글로벌 브랜드 위주)에 없어 기존 이모지를 그대로 유지. 헬스장/정기배송/클라우드 저장소/직접 입력처럼 특정 브랜드가 아닌 카테고리형 프리셋도 당연히 이모지 유지. 이 매핑은 `src/lib/brand-icons.ts`의 `SERVICE_BRAND_ICONS`(서비스명 → `{path, hex, title}`)에 하드코딩
+- **공통 아이콘 컴포넌트**: `src/components/ServiceIcon.tsx`를 새로 만들어, 브랜드 매핑이 있으면 `fill="#{hex}"`를 준 `<svg><path/></svg>`로, 없으면 기존 `getServiceIcon()` 이모지로 렌더링하도록 통일. `size="sm"|"md"|"lg"` 세 단계로 기존 화면들이 쓰던 서로 다른 아이콘 크기(`text-base`/`text-xl`/`text-2xl`)를 그대로 보존. 적용 위치: `SubscriptionCard`(대시보드·알림 공용, size=lg), `TopSpendList`(size=md), `BillingCalendar`(size=sm), `ServiceSelect`(신규, size=sm) — 아이콘이 쓰이는 모든 곳에 일관 적용
+- **번들 크기**: `simple-icons`는 3000개 이상의 아이콘을 가진 큰 패키지지만, 패키지의 `sideEffects: false` + ESM named export 구조 덕분에 실제 쓰는 4개(`siNetflix`, `siYoutube`, `siSpotify`, `siApplemusic`)만 import하면 Next.js/webpack 프로덕션 빌드에서 나머지가 트리쉐이킹됨. 빌드 후 `/register` 페이지 청크가 17KB로 확인되어 문제없음을 검증
+- **등록 드롭다운 카테고리 그룹화**: 기존 네이티브 `<select>`를 커스텀 드롭다운(`src/components/ServiceSelect.tsx`)으로 교체. 네이티브 `<select>`/`<optgroup>`은 그룹 헤딩에 색을 줄 수 없고(특히 모바일 네이티브 피커는 CSS를 전혀 반영하지 않음) 브랜드 아이콘 같은 JSX도 `<option>` 안에 넣을 수 없어, 색상 구분이 필요한 이번 요구사항엔 커스텀 구현이 필수였음. 그룹 순서/카테고리명은 `constants.ts`에 이미 있던 `CATEGORY_OPTIONS`(OTT/음악/피트니스/정기배송/생산성/기타)를 그대로 사용 — 프리셋 14개가 이미 전부 이 6개 카테고리에 깔끔히 속해 있어 새로 분류할 필요가 없었음. 각 그룹 헤딩은 `CATEGORY_COLORS`의 카테고리별 고정 색을 텍스트 색 + 좌측 컬러 바로 표시하고, 클릭 불가능한 `<div>`로 만들어 선택 불가 라벨임을 명확히 함. 개별 서비스는 클릭 시 기존과 동일하게 바로 선택되고 드롭다운이 닫힘(2단계 선택 아님). 바깥 클릭 시 드롭다운이 닫히는 로직 포함
+- **아이콘 커서 스타일**: 대시보드/알림의 서비스 아이콘 버튼에 `cursor-pointer`를 추가(기능 로직은 변경 없음, 클릭 가능함을 시각적으로만 드러냄)
+- **데이터/타입 변경 없음** — 이번 작업은 UI/표시 로직만 변경, `Subscription` 데이터 모델은 그대로
+
+### 검증
+- `npx tsc --noEmit`, `npm run build -- --webpack` 통과 (Turbopack은 한글 경로 패닉 이슈로 `--webpack` 필수)
+- Playwright로 등록 드롭다운을 열어 6개 카테고리 헤딩이 각각 다른 색(OTT 파랑/음악 초록/피트니스 주황/정기배송 진초록/생산성 보라/기타 빨강)으로 렌더링되는지, 넷플릭스 옵션의 SVG `fill`이 정확히 브랜드 헥스(`#E50914`)인지, 스포티파이 선택 시 드롭다운이 닫히고 선택값이 바뀌는지 확인
+- 폼 제출 → 대시보드에서 스포티파이 아이콘이 브랜드 컬러(`#1ED760`)로 렌더링되는지, 아이콘 버튼의 `cursor` computed style이 `pointer`인지, 왓챠처럼 매핑 없는 서비스는 `<svg>` 대신 이모지 `<span>`으로 폴백되는지 확인
+- 등록 드롭다운(데스크톱/375px)·대시보드·알림 화면 스크린샷으로 브랜드 아이콘·그룹 헤딩·이모지 폴백이 함께 있어도 시각적으로 자연스러운지 확인, 375px에서 드롭다운 그룹 헤딩이 겹치거나 잘리지 않음을 확인
+- 지난 마일스톤에서 고친 "등록 후 대시보드 즉시 반영" 버그가 이번 변경(`register/page.tsx`, `SubscriptionCard.tsx` 수정 포함)으로 재발하지 않았는지 회귀 확인(정상)
+- 기존 4개 라우트 전체 플로우 + 375px 모바일 재검증, 콘솔/페이지 에러 0건
+
+### 다음에 할 일
+- Vercel 배포
+- (아이디어) 또래 대비 지출 비교, 중복 카테고리 경고
+- (참고) 디즈니플러스/왓챠/웨이브/티빙/멜론/쿠팡 와우는 simple-icons에 브랜드가 추가되면 `brand-icons.ts`의 매핑만 늘리면 됨(다른 코드 변경 불필요)
+
+---
+
+## 2026-07-14 (재구독 이력 기능 추가)
+
+### 사전 분석 결과 (구현 전 확인)
+- 대시보드 "×" 삭제(v6)는 `deleteSubscription()`으로 `filter`해서 배열에서 완전히 제거하는 **하드 삭제** — 흔적이 남지 않음
+- 알림 탭 "해지"는 `updateSubscription(id, {status:"cancelled"})`로 **소프트 취소** — 레코드가 영구 보존되고, `active`만 걸러내는 여러 집계 함수 덕에 화면에서만 안 보일 뿐임
+- `register`의 등록 로직은 `serviceName` 중복 체크가 전혀 없어, 해지된 서비스를 같은 이름으로 재등록하면 cancelled 레코드와 active 레코드가 동시에 공존함(병합 없음)
+- 따라서 "소프트 취소 레코드 기반"의 재구독 이력은 스키마 변경 없이 조회 함수 추가만으로 가능하다고 판단 — 하드 삭제(×) 경로는 이번 스코프에서 건드리지 않음(요청대로)
+
+### 완료한 작업 요약
+- **`src/lib/subscription-history.ts`(신규)**: `getSubscriptionHistory(subscriptions)`가 `serviceName` 기준으로 전체 레코드(active+cancelled)를 그룹핑해, **cancelled 레코드가 1건 이상 있는 서비스만** 결과에 포함. 각 그룹은 `createdAt` 오름차순으로 정렬한 `records`, `cancelCount`(해지 횟수), `isActive`(현재 같은 이름의 active 레코드 존재 여부), `totalApproxAnnualSpend`(그룹 내 모든 레코드에 `getAnnualSavingsForSub`와 동일한 연간 환산 공식을 적용해 합산한 값)를 담음. 결과는 해지 횟수 내림차순으로 정렬
+- **알려진 한계 (의도적으로 이번 스코프 제외)**:
+  - 데이터 모델에 해지 시점(`cancelledAt`)이 없어서, 정확한 구독 유지 기간 기반 지출을 계산할 수 없음 — 대신 각 레코드의 연간 환산액을 단순 합산한 "대략적" 값을 사용(문서/UI 문구에도 "약", "대략적"으로 명시)
+  - `serviceName`은 **정확히 일치하는 문자열만** 같은 서비스로 그룹핑함. "직접 입력"으로 등록한 커스텀 서비스명은 표기 차이(예: "넷플릭스" vs "Netflix")가 있으면 별개 서비스로 취급됨 — 오타/표기 정규화는 이번 스코프에서 처리하지 않음
+- **`/report`에 "재구독 이력" 섹션 추가**: 기존 "카드/계좌별 지출" 섹션 바로 아래, 같은 리스트 스타일(둥근 카드, `border-gray-200`)로 추가. 해지 이력이 있는 서비스가 하나도 없으면 다른 빈 상태 섹션들과 동일한 톤("아직 가격이 오른 구독이 없어요." 등)으로 "아직 해지한 적 있는 구독이 없어요."를 점선 박스에 표시. 항목이 있으면 서비스명 + (재구독 중이면) 에메랄드색 "재구독 중" 배지 + "해지 N회" + "누적 연간 환산 지출 약 OO원"을 표시. 아이콘은 이 페이지의 기존 "이번 주 사용량 체크인" 섹션과 동일하게 `getServiceIcon()` 이모지 방식을 그대로 써서(브랜드 컬러 SVG인 `ServiceIcon` 컴포넌트를 새로 안 씀) 리포트 화면 안에서 아이콘 스타일이 섞이지 않도록 함
+- **데이터/타입 변경 없음** — 새 필드나 스키마 변경 없이 기존 `Subscription[]`을 그대로 읽어서 조회만 함. `×` 하드 삭제 로직도 그대로 유지
+
+### 검증
+- `npx tsc --noEmit`, `npm run build -- --webpack` 통과
+- Playwright로 실제 시나리오 재현: 넷플릭스 등록 → 알림 탭에서 카드 클릭 후 "해지"(첫 해지라 목표 설정 단계 거침) → 같은 "넷플릭스"로 재등록 → `/report`에서 "재구독 이력" 섹션에 "해지 1회" + "재구독 중" 배지 + "누적 연간 환산 지출 약 432,000원"(17,000×12 + 19,000×12) 정확히 반영되는지 확인
+- 해지 이력이 하나도 없는 상태(등록만 하고 해지한 적 없음)에서 빈 상태 문구가 정상적으로 뜨는지 확인
+- 375px 모바일 스크린샷으로 새 섹션이 다른 섹션과 겹침 없이 자연스럽게 배치되는지 확인
+- 지난 마일스톤의 "등록 후 대시보드 즉시 반영" 버그가 재발하지 않았는지 회귀 확인(정상)
+- 기존 4개 라우트 전체 플로우 + 375px 모바일 재검증, 콘솔/페이지 에러 0건
+
+### 다음에 할 일
+- Vercel 배포
+- (아이디어) 또래 대비 지출 비교, 중복 카테고리 경고
+- (알려진 이슈) 재구독 이력의 `serviceName` 정확 일치 매칭 — 커스텀 서비스명 오타/표기 차이는 별개 서비스로 집계됨
+- (알려진 이슈) 재구독 이력의 지출 합계는 해지 시점 데이터가 없어 "대략적" 값(레코드별 연간 환산액의 단순 합)이며 실제 구독 유지 기간 기준이 아님
+- (선택, 이번엔 보류) `×` 하드 삭제를 소프트 삭제로 전환하면 삭제 후 재등록까지 포함한 완전한 재구독 이력이 가능하지만, 기존 삭제 모달의 "되돌릴 수 없어요" UX 약속과 충돌해 별도 제품 결정이 필요함

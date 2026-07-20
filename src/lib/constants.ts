@@ -1,3 +1,5 @@
+import { NotificationThreshold } from "./types";
+
 export interface ServicePreset {
   name: string;
   category: string;
@@ -21,13 +23,16 @@ export const SERVICE_PRESETS: ServicePreset[] = [
   { name: "직접 입력", category: "기타", icon: "✏️" },
 ];
 
-export const NOTIFICATION_THRESHOLD_OPTIONS: { label: string; value: number }[] = [
-  { label: "D-3일 전", value: 3 },
-  { label: "D-1일 전", value: 1 },
+export const NOTIFICATION_THRESHOLD_OPTIONS: { label: string; value: NotificationThreshold }[] = [
+  { label: "D-7", value: 7 },
+  { label: "D-6", value: 6 },
+  { label: "D-5", value: 5 },
+  { label: "D-4", value: 4 },
+  { label: "D-3", value: 3 },
+  { label: "D-2", value: 2 },
+  { label: "D-1", value: 1 },
   { label: "당일", value: 0 },
 ];
-
-export const NOTIFICATION_THRESHOLD_STORAGE_KEY = "sm_notification_threshold";
 
 export const DEFAULT_CATEGORY = "기타";
 
