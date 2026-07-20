@@ -31,8 +31,19 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* 하이드레이션 전에 동기적으로 실행돼, 저장된 다크모드 설정을 첫 페인트부터 반영한다
+            (깜빡임 방지). "sm_theme" 키는 storage.ts의 THEME_KEY와 반드시 같아야 한다. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{if(localStorage.getItem('sm_theme')==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();",
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <main className="flex-1 w-full max-w-md mx-auto px-4 pb-24 pt-6">
           {children}

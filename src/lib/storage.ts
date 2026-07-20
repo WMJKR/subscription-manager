@@ -1,6 +1,6 @@
 import { DEFAULT_CATEGORY } from "./constants";
 import { getDDay } from "./date-utils";
-import { NotificationThreshold, SavingsGoal, Subscription, UserProfile } from "./types";
+import { NotificationThreshold, SavingsGoal, Subscription, Theme, UserProfile } from "./types";
 
 // 프로토타입 단계: 브라우저 localStorage로 데이터를 관리한다.
 // TODO: 추후 Supabase 등 실제 백엔드로 교체 예정.
@@ -10,6 +10,8 @@ const USER_KEY = "sm_user";
 const GOAL_KEY = "sm_goal";
 const NOTIFICATION_THRESHOLD_KEY = "sm_notification_threshold";
 const DEFAULT_NOTIFICATION_THRESHOLD: NotificationThreshold = 3;
+const THEME_KEY = "sm_theme";
+const DEFAULT_THEME: Theme = "light";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
@@ -138,4 +140,16 @@ export function getNotificationThreshold(): NotificationThreshold {
 export function saveNotificationThreshold(value: NotificationThreshold): void {
   if (!isBrowser()) return;
   window.localStorage.setItem(NOTIFICATION_THRESHOLD_KEY, String(value));
+}
+
+/** 손상되거나 저장된 적 없는 값은 기본값(light)으로 보정한다. */
+export function getTheme(): Theme {
+  if (!isBrowser()) return DEFAULT_THEME;
+  const raw = window.localStorage.getItem(THEME_KEY);
+  return raw === "dark" ? "dark" : DEFAULT_THEME;
+}
+
+export function saveTheme(theme: Theme): void {
+  if (!isBrowser()) return;
+  window.localStorage.setItem(THEME_KEY, theme);
 }

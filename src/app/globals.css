@@ -1,6 +1,10 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
 @import "tailwindcss";
 
+/* 수동 토글로 다크모드를 켜므로, Tailwind의 dark: variant를 OS 설정(prefers-color-scheme)이
+   아니라 <html data-theme="dark">에 반응하도록 재정의한다. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /*
  * 디자인 토큰 — "신뢰 인디고" 컨셉.
  * 기존 화면에서 실제 쓰이던 색을 그대로 값으로 옮겨 이름만 붙인 것이라(indigo→primary,
@@ -8,7 +12,11 @@
  * 각 페이지의 유틸리티 클래스를 primary·슬레이트 계열로 교체하면서 이뤄진다.
  * 새 색상이 필요하면 여기 값만 바꾸면 전체에 반영된다.
  */
-@theme inline {
+/* "inline"을 쓰면 Tailwind가 토큰 값을 빌드 타임에 유틸리티 클래스 안에 그대로 박아넣어서
+   (예: .bg-surface { background-color: #fff }), 런타임에 [data-theme="dark"]로 변수 값을
+   바꿔도 이미 생성된 클래스에는 반영되지 않는다. 다크모드 토글이 실제로 동작하려면 반드시
+   var(--color-x) 참조를 유지하는 일반 @theme를 써야 한다. */
+@theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
@@ -19,6 +27,9 @@
   --color-primary-500: #6366f1;
   --color-primary-600: #4f46e5;
   --color-primary-700: #4338ca;
+  /* 솔리드 버튼의 hover 시 더 어둡게 쓰이는 전용 shade. primary-700은 "선택된 항목의 밝은
+     텍스트" 역할과 겹쳐서 다크모드에서 반대 방향으로 뒤집혀야 해, 별도 토큰으로 분리했다. */
+  --color-primary-hover: #4338ca;
 
   /* Accent — 보조 강조색(현재는 정의만, 필요해지면 사용) */
   --color-accent: #0ea5e9;
@@ -38,9 +49,26 @@
   --color-warning: #d97706;
 }
 
+/* 다크모드 — 토큰 값만 교체한다. primary-50/700은 "선택 배경/텍스트" 역할이라 밝기가
+   뒤집히고(밝은 틴트 배경 → 어두운 틴트 배경, 진한 텍스트 → 밝은 텍스트), 나머지 shade와
+   상태색·강조색은 톤을 유지한다(배너·솔리드 버튼처럼 이미 채도가 있는 면은 테마와 무관하게
+   그대로 두는 편이 브랜드 일관성에 낫다). */
+[data-theme="dark"] {
+  --color-primary-50: #312e81;
+  --color-primary-700: #c7d2fe;
+
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-border: #334155;
+  --color-border-strong: #475569;
+  --color-text: #f1f5f9;
+  --color-text-muted: #94a3b8;
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-text);
+  transition: background-color 0.15s, color 0.15s;
   /* Geist는 라틴 서브셋이라 한글을 지원하지 않는다. 한글이 대부분인 이 앱은
      Pretendard를 기본 sans으로 쓰고, Geist는 영문/숫자 폴백으로만 남긴다. */
   font-family: "Pretendard", var(--font-geist-sans), -apple-system, BlinkMacSystemFont,

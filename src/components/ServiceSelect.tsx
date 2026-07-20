@@ -44,7 +44,7 @@ export default function ServiceSelect({ value, onChange }: Props) {
       >
         <ServiceIcon serviceName={value} size="sm" />
         <span className="min-w-0 flex-1 truncate">{value}</span>
-        <span className="shrink-0 text-slate-400">▾</span>
+        <span className="shrink-0 text-slate-400 dark:text-slate-500">▾</span>
       </button>
 
       {isOpen && (
@@ -68,8 +68,10 @@ export default function ServiceSelect({ value, onChange }: Props) {
                       onChange(service.name);
                       setIsOpen(false);
                     }}
-                    className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 ${
-                      value === service.name ? "bg-primary-50 text-primary-700" : "text-slate-700"
+                    className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                      value === service.name
+                        ? "bg-primary-50 text-primary-700"
+                        : "text-slate-700 dark:text-slate-300"
                     }`}
                   >
                     <ServiceIcon serviceName={service.name} size="sm" />

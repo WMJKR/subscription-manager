@@ -63,7 +63,9 @@ export default function ReportPage() {
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-slate-700">이번 주 사용량 체크인</h2>
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+          이번 주 사용량 체크인
+        </h2>
 
         {isLoaded && active.length === 0 && (
           <div className="rounded-xl border border-dashed border-border-strong p-8 text-center text-sm text-text-muted">
@@ -91,7 +93,7 @@ export default function ReportPage() {
                         inputMode="numeric"
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
-                        className="w-20 rounded-md border border-border-strong px-2 py-1 text-sm"
+                        className="w-20 rounded-md border border-border-strong bg-surface px-2 py-1 text-sm text-text"
                       />
                       <button
                         type="button"
@@ -117,7 +119,9 @@ export default function ReportPage() {
                   {(sub.sharedCount ?? 1) > 1 ? " (내 부담)" : ""}
                 </p>
 
-                <p className="mt-3 text-xs font-medium text-slate-600">이번 주 몇 번 쓰셨나요?</p>
+                <p className="mt-3 text-xs font-medium text-slate-600 dark:text-slate-400">
+                  이번 주 몇 번 쓰셨나요?
+                </p>
                 <div className="mt-2 grid grid-cols-3 gap-2">
                   {FREQUENCY_OPTIONS.map((opt) => {
                     const selected = checkedInThisWeek && sub.usageCheckIn?.frequency === opt.value;
@@ -129,7 +133,7 @@ export default function ReportPage() {
                         className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
                           selected
                             ? "border-primary-600 bg-primary-50 text-primary-700"
-                            : "border-border-strong text-slate-600"
+                            : "border-border-strong text-slate-600 dark:text-slate-400"
                         }`}
                       >
                         {opt.label}
@@ -140,15 +144,15 @@ export default function ReportPage() {
 
                 <div className="mt-3 min-h-[1rem]">
                   {!checkedInThisWeek && (
-                    <p className="text-xs text-slate-400">체크인이 필요해요.</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">체크인이 필요해요.</p>
                   )}
                   {checkedInThisWeek && sub.usageCheckIn?.frequency === "none" && (
-                    <p className="text-xs font-medium text-amber-600">
+                    <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
                       이번 주 안 쓴 구독이에요.
                     </p>
                   )}
                   {checkedInThisWeek && costPerUse !== null && (
-                    <p className="text-xs font-medium text-slate-700">
+                    <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
                       회당 비용 약{" "}
                       <span className="font-bold text-text">
                         {costPerUse.toLocaleString()}원
@@ -163,7 +167,7 @@ export default function ReportPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-slate-700">가격 인상 감지</h2>
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">가격 인상 감지</h2>
         {priceIncreases.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border-strong p-6 text-center text-sm text-text-muted">
             아직 가격이 오른 구독이 없어요.
@@ -173,7 +177,7 @@ export default function ReportPage() {
             {priceIncreases.map(({ sub, diff, percent }) => (
               <li
                 key={sub.id}
-                className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+                className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400"
               >
                 <span className="font-semibold">{sub.serviceName}</span> 가격이 등록 시점 대비{" "}
                 <span className="font-bold">
@@ -187,7 +191,7 @@ export default function ReportPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-slate-700">카드/계좌별 지출</h2>
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">카드/계좌별 지출</h2>
         {cardBreakdown.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border-strong p-6 text-center text-sm text-text-muted">
             등록된 구독이 없어요.
@@ -217,7 +221,7 @@ export default function ReportPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-slate-700">재구독 이력</h2>
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">재구독 이력</h2>
         {subscriptionHistory.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border-strong p-6 text-center text-sm text-text-muted">
             아직 해지한 적 있는 구독이 없어요.
@@ -235,7 +239,7 @@ export default function ReportPage() {
                     {item.serviceName}
                   </p>
                   {item.isActive && (
-                    <span className="shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                    <span className="shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
                       재구독 중
                     </span>
                   )}

@@ -7,8 +7,8 @@ import SubscriptionCard from "@/components/SubscriptionCard";
 import CategoryDonutChart from "@/components/CategoryDonutChart";
 import TopSpendList from "@/components/TopSpendList";
 import { downloadICS } from "@/lib/ics";
-import { deleteSubscription, getGoal, saveGoal } from "@/lib/storage";
-import { SavingsGoal, Subscription } from "@/lib/types";
+import { deleteSubscription, getGoal, getTheme, saveGoal, saveTheme } from "@/lib/storage";
+import { SavingsGoal, Subscription, Theme } from "@/lib/types";
 import { getDDay } from "@/lib/date-utils";
 import {
   getAnnualTotal,
@@ -24,10 +24,19 @@ export default function DashboardPage() {
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [goalNameInput, setGoalNameInput] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Subscription | null>(null);
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
     setGoal(getGoal());
+    setTheme(getTheme());
   }, []);
+
+  function toggleTheme() {
+    const next: Theme = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    saveTheme(next);
+    document.documentElement.setAttribute("data-theme", next);
+  }
 
   const activeSubscriptions = subscriptions.filter((sub) => sub.status === "active");
   const sorted = [...activeSubscriptions].sort(
@@ -71,13 +80,23 @@ export default function DashboardPage() {
           <h1 className="text-xl font-bold text-text">홈</h1>
           <p className="mt-1 text-sm text-text-muted">등록된 구독을 한눈에 확인하세요.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => downloadICS(subscriptions)}
-          className="shrink-0 rounded-lg border border-border-strong px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-        >
-          📅 캘린더로 내보내기
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
+            className="rounded-lg border border-border-strong px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+          <button
+            type="button"
+            onClick={() => downloadICS(subscriptions)}
+            className="rounded-lg border border-border-strong px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
+          >
+            📅 캘린더로 내보내기
+          </button>
+        </div>
       </header>
 
       <section className="rounded-2xl bg-primary-600 p-5 text-white shadow-sm">
@@ -94,7 +113,7 @@ export default function DashboardPage() {
       </section>
 
       {goal && (
-        <section className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+        <section className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950">
           {isEditingGoal ? (
             <div className="flex w-full items-center gap-2">
               <input
@@ -113,13 +132,13 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-              <p className="text-sm font-semibold text-emerald-800">
+              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
                 🎯 {goal.goalName} · {goal.goalSavedAmount.toLocaleString()}원 모음
               </p>
               <button
                 type="button"
                 onClick={startEditGoal}
-                className="shrink-0 text-xs font-medium text-emerald-700"
+                className="shrink-0 text-xs font-medium text-emerald-700 dark:text-emerald-400"
               >
                 수정
               </button>
@@ -130,14 +149,18 @@ export default function DashboardPage() {
 
       {hasActiveSubscriptions && (
         <section className="space-y-2">
-          <h2 className="text-sm font-semibold text-slate-700">가장 비싸게 나가는 구독 Top 3</h2>
+          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            가장 비싸게 나가는 구독 Top 3
+          </h2>
           <TopSpendList items={topSubscriptions} />
         </section>
       )}
 
       {hasActiveSubscriptions && (
         <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
-          <h2 className="text-sm font-semibold text-slate-700">카테고리별 지출 비중</h2>
+          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            카테고리별 지출 비중
+          </h2>
           <CategoryDonutChart breakdown={categoryBreakdown} totalAmount={totalSpend} />
         </section>
       )}
@@ -183,7 +206,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDeleteTarget(null)}
-                className="rounded-lg border border-border-strong py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                className="rounded-lg border border-border-strong py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
               >
                 취소
               </button>

@@ -64,7 +64,9 @@ export default function CategoryDonutChart({ breakdown, totalAmount }: Props) {
                 style={{ backgroundColor: color }}
                 aria-hidden
               />
-              <span className="min-w-0 flex-1 truncate text-slate-700">{item.category}</span>
+              <span className="min-w-0 flex-1 truncate text-slate-700 dark:text-slate-300">
+                {item.category}
+              </span>
               <span className="shrink-0 font-medium text-text">
                 {item.percent}% · {item.amount.toLocaleString()}원
               </span>

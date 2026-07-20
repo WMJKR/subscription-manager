@@ -42,3 +42,5 @@ export interface SavingsGoal {
 }
 
 export type NotificationThreshold = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export type Theme = "light" | "dark";

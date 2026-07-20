@@ -15,7 +15,7 @@ export default function TopSpendList({ items }: Props) {
             key={item.id}
             className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3"
           >
-            <span className="w-5 shrink-0 text-center text-sm font-bold text-slate-400">
+            <span className="w-5 shrink-0 text-center text-sm font-bold text-slate-400 dark:text-slate-500">
               {index + 1}
             </span>
             <ServiceIcon serviceName={item.serviceName} size="md" />
@@ -28,7 +28,7 @@ export default function TopSpendList({ items }: Props) {
               </span>
               <span className="block text-xs text-text-muted">전체의 {item.percent}%</span>
               {isShared && (
-                <span className="block text-[11px] text-slate-400">
+                <span className="block text-[11px] text-slate-400 dark:text-slate-500">
                   {item.amount.toLocaleString()}원 · {item.sharedCount}명 분담
                 </span>
               )}

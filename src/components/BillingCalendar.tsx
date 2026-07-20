@@ -51,7 +51,7 @@ export default function BillingCalendar({ subscriptions }: Props) {
           type="button"
           onClick={goPrevMonth}
           aria-label="이전 달"
-          className="rounded-lg px-3 py-1 text-text-muted hover:bg-slate-100"
+          className="rounded-lg px-3 py-1 text-text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
         >
           ‹
         </button>
@@ -62,13 +62,13 @@ export default function BillingCalendar({ subscriptions }: Props) {
           type="button"
           onClick={goNextMonth}
           aria-label="다음 달"
-          className="rounded-lg px-3 py-1 text-text-muted hover:bg-slate-100"
+          className="rounded-lg px-3 py-1 text-text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
         >
           ›
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[11px] text-slate-400">
+      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[11px] text-slate-400 dark:text-slate-500">
         {WEEKDAY_LABELS.map((label) => (
           <div key={label}>{label}</div>
         ))}
@@ -94,7 +94,7 @@ export default function BillingCalendar({ subscriptions }: Props) {
                   ? "bg-primary-600 text-white"
                   : isToday
                     ? "border border-primary-400 text-text"
-                    : "text-slate-700 hover:bg-slate-50"
+                    : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
               }`}
             >
               <span>{day}</span>
@@ -108,11 +108,13 @@ export default function BillingCalendar({ subscriptions }: Props) {
         })}
       </div>
 
-      <div className="mt-4 border-t border-slate-100 pt-3">
+      <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800">
         {selectedDay === null ? (
-          <p className="text-xs text-slate-400">날짜를 선택하면 결제 예정 구독을 볼 수 있어요.</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            날짜를 선택하면 결제 예정 구독을 볼 수 있어요.
+          </p>
         ) : selectedSubs.length === 0 ? (
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 dark:text-slate-500">
             {viewMonth + 1}월 {selectedDay}일에는 결제 예정 구독이 없어요.
           </p>
         ) : (
@@ -120,7 +122,9 @@ export default function BillingCalendar({ subscriptions }: Props) {
             {selectedSubs.map((sub) => (
               <li key={sub.id} className="flex items-center gap-2 text-sm">
                 <ServiceIcon serviceName={sub.serviceName} size="sm" />
-                <span className="min-w-0 flex-1 truncate text-slate-700">{sub.serviceName}</span>
+                <span className="min-w-0 flex-1 truncate text-slate-700 dark:text-slate-300">
+                  {sub.serviceName}
+                </span>
                 <span className="shrink-0 font-semibold text-text">
                   {sub.amount.toLocaleString()}원
                 </span>
