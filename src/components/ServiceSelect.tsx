@@ -40,15 +40,15 @@ export default function ServiceSelect({ value, onChange }: Props) {
       <button
         type="button"
         onClick={() => setIsOpen((v) => !v)}
-        className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-left text-sm focus:border-indigo-500 focus:outline-none"
+        className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-border-strong px-3 py-2 text-left text-sm focus:border-primary-500 focus:outline-none"
       >
         <ServiceIcon serviceName={value} size="sm" />
         <span className="min-w-0 flex-1 truncate">{value}</span>
-        <span className="shrink-0 text-gray-400">▾</span>
+        <span className="shrink-0 text-slate-400">▾</span>
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+        <div className="absolute z-10 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-surface py-1 shadow-lg">
           {groups.map((group) => {
             const color = CATEGORY_COLORS[group.category] ?? FALLBACK_CATEGORY_COLOR;
             return (
@@ -68,8 +68,8 @@ export default function ServiceSelect({ value, onChange }: Props) {
                       onChange(service.name);
                       setIsOpen(false);
                     }}
-                    className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50 ${
-                      value === service.name ? "bg-indigo-50 text-indigo-700" : "text-gray-700"
+                    className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 ${
+                      value === service.name ? "bg-primary-50 text-primary-700" : "text-slate-700"
                     }`}
                   >
                     <ServiceIcon serviceName={service.name} size="sm" />

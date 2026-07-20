@@ -68,27 +68,27 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">홈</h1>
-          <p className="mt-1 text-sm text-gray-500">등록된 구독을 한눈에 확인하세요.</p>
+          <h1 className="text-xl font-bold text-text">홈</h1>
+          <p className="mt-1 text-sm text-text-muted">등록된 구독을 한눈에 확인하세요.</p>
         </div>
         <button
           type="button"
           onClick={() => downloadICS(subscriptions)}
-          className="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+          className="shrink-0 rounded-lg border border-border-strong px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
         >
           📅 캘린더로 내보내기
         </button>
       </header>
 
-      <section className="rounded-2xl bg-indigo-600 p-5 text-white shadow-sm">
-        <p className="text-sm text-indigo-100">이번 달 총 구독 지출액</p>
+      <section className="rounded-2xl bg-primary-600 p-5 text-white shadow-sm">
+        <p className="text-sm text-primary-100">이번 달 총 구독 지출액</p>
         <p className="mt-1 text-3xl font-bold">
           {monthlyTotal.toLocaleString()}원{" "}
-          <span className="text-base font-medium text-indigo-100">
+          <span className="text-base font-medium text-primary-100">
             · 연간 약 {annualTotal.toLocaleString()}원
           </span>
         </p>
-        <p className="mt-2 text-sm text-indigo-100">
+        <p className="mt-2 text-sm text-primary-100">
           등록된 구독 {activeSubscriptions.length}개
         </p>
       </section>
@@ -101,7 +101,7 @@ export default function DashboardPage() {
                 type="text"
                 value={goalNameInput}
                 onChange={(e) => setGoalNameInput(e.target.value)}
-                className="min-w-0 flex-1 rounded-md border border-gray-300 px-2 py-1 text-sm"
+                className="min-w-0 flex-1 rounded-md border border-border-strong px-2 py-1 text-sm"
               />
               <button
                 type="button"
@@ -130,25 +130,25 @@ export default function DashboardPage() {
 
       {hasActiveSubscriptions && (
         <section className="space-y-2">
-          <h2 className="text-sm font-semibold text-gray-700">가장 비싸게 나가는 구독 Top 3</h2>
+          <h2 className="text-sm font-semibold text-slate-700">가장 비싸게 나가는 구독 Top 3</h2>
           <TopSpendList items={topSubscriptions} />
         </section>
       )}
 
       {hasActiveSubscriptions && (
-        <section className="space-y-3 rounded-2xl border border-gray-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-700">카테고리별 지출 비중</h2>
+        <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
+          <h2 className="text-sm font-semibold text-slate-700">카테고리별 지출 비중</h2>
           <CategoryDonutChart breakdown={categoryBreakdown} totalAmount={totalSpend} />
         </section>
       )}
 
       <section className="space-y-3">
         {isLoaded && sorted.length === 0 && (
-          <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
-            <p className="text-sm text-gray-500">아직 등록된 구독이 없어요.</p>
+          <div className="rounded-xl border border-dashed border-border-strong p-8 text-center">
+            <p className="text-sm text-text-muted">아직 등록된 구독이 없어요.</p>
             <Link
               href="/register"
-              className="mt-3 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
+              className="mt-3 inline-block rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white"
             >
               첫 구독 등록하기
             </Link>
@@ -169,13 +169,13 @@ export default function DashboardPage() {
           onClick={() => setDeleteTarget(null)}
         >
           <div
-            className="w-full max-w-md rounded-t-2xl bg-white p-6 sm:rounded-2xl"
+            className="w-full max-w-md rounded-t-2xl bg-surface p-6 sm:rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold text-gray-900">
+            <h2 className="text-lg font-bold text-text">
               {deleteTarget.serviceName}을(를) 목록에서 삭제할까요?
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-text-muted">
               이 작업은 되돌릴 수 없어요. 해지 절약 목표에는 반영되지 않아요.
             </p>
 
@@ -183,7 +183,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDeleteTarget(null)}
-                className="rounded-lg border border-gray-300 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+                className="rounded-lg border border-border-strong py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50"
               >
                 취소
               </button>

@@ -1,26 +1,48 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/*
+ * 디자인 토큰 — "신뢰 인디고" 컨셉.
+ * 기존 화면에서 실제 쓰이던 색을 그대로 값으로 옮겨 이름만 붙인 것이라(indigo→primary,
+ * gray→slate 계열로 통일), 이 파일만 바꿔서는 화면이 달라지지 않는다. 실제 적용은
+ * 각 페이지의 유틸리티 클래스를 primary·슬레이트 계열로 교체하면서 이뤄진다.
+ * 새 색상이 필요하면 여기 값만 바꾸면 전체에 반영된다.
+ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Primary — 기존 indigo 톤을 그대로 유지 */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+
+  /* Accent — 보조 강조색(현재는 정의만, 필요해지면 사용) */
+  --color-accent: #0ea5e9;
+  --color-accent-hover: #0284c7;
+
+  /* 중립(Slate) — 기존 gray 대신 살짝 더 차가운 슬레이트 계열로 통일 */
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+
+  /* 상태색 — 기존 의미(위험=red/성공=emerald/경고=amber) 그대로 유지 */
+  --color-danger: #dc2626;
+  --color-success: #059669;
+  --color-warning: #d97706;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  /* Geist는 라틴 서브셋이라 한글을 지원하지 않는다. 한글이 대부분인 이 앱은
+     Pretendard를 기본 sans으로 쓰고, Geist는 영문/숫자 폴백으로만 남긴다. */
+  font-family: "Pretendard", var(--font-geist-sans), -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", sans-serif;
 }

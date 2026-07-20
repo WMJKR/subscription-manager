@@ -40,16 +40,16 @@ export default function SubscriptionCard({ subscription, onClick, onDelete }: Pr
       onKeyDown={handleKeyDown}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className={`relative flex w-full items-center gap-3 rounded-xl border bg-white p-4 text-left shadow-sm transition-colors ${
-        isImminent ? "border-2 border-indigo-500" : "border-gray-200"
-      } ${onClick ? "cursor-pointer hover:bg-gray-50" : ""}`}
+      className={`relative flex w-full items-center gap-3 rounded-xl border bg-surface p-4 text-left shadow-sm transition-colors ${
+        isImminent ? "border-2 border-primary-500" : "border-border"
+      } ${onClick ? "cursor-pointer hover:bg-slate-50" : ""}`}
     >
       {onDelete && (
         <button
           type="button"
           onClick={handleDeleteClick}
           aria-label={`${subscription.serviceName} 삭제`}
-          className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-gray-300 hover:bg-red-50 hover:text-red-500"
+          className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-slate-300 hover:bg-red-50 hover:text-red-500"
         >
           ×
         </button>
@@ -63,7 +63,7 @@ export default function SubscriptionCard({ subscription, onClick, onDelete }: Pr
         <ServiceIcon serviceName={subscription.serviceName} size="lg" />
       </button>
       <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-gray-900">
+        <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-text">
           <span className="truncate">{subscription.serviceName}</span>
           {subscription.isTrial && (
             <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
@@ -71,7 +71,7 @@ export default function SubscriptionCard({ subscription, onClick, onDelete }: Pr
             </span>
           )}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-text-muted">
           {formatDate(subscription.nextBillingDate)} ·{" "}
           {subscription.billingCycle === "monthly" ? "매월" : "매년"}
         </p>
@@ -79,16 +79,16 @@ export default function SubscriptionCard({ subscription, onClick, onDelete }: Pr
       <div className="flex flex-col items-end gap-1">
         <span
           className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-            isImminent ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600"
+            isImminent ? "bg-primary-600 text-white" : "bg-slate-100 text-slate-600"
           }`}
         >
           {formatDDay(dDay)}
         </span>
-        <span className="text-sm font-semibold text-gray-900">
+        <span className="text-sm font-semibold text-text">
           {subscription.amount.toLocaleString()}원
         </span>
         {isShared && (
-          <span className="text-right text-[11px] text-gray-500">
+          <span className="text-right text-[11px] text-text-muted">
             {subscription.sharedCount}명 분담 · 내 부담 {actualAmount.toLocaleString()}원
           </span>
         )}

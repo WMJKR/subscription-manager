@@ -17,7 +17,14 @@ export default function CategoryDonutChart({ breakdown, totalAmount }: Props) {
     <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
       <div className="relative h-40 w-40 shrink-0">
         <svg viewBox="0 0 42 42" className="h-40 w-40 -rotate-90">
-          <circle cx={21} cy={21} r={RADIUS} fill="transparent" stroke="#e1e0d9" strokeWidth={6} />
+          <circle
+            cx={21}
+            cy={21}
+            r={RADIUS}
+            fill="transparent"
+            stroke="var(--color-border-strong)"
+            strokeWidth={6}
+          />
           {breakdown.map((item) => {
             const color = CATEGORY_COLORS[item.category] ?? FALLBACK_CATEGORY_COLOR;
             const filled = Math.max(item.percent - GAP, 0);
@@ -40,8 +47,8 @@ export default function CategoryDonutChart({ breakdown, totalAmount }: Props) {
           })}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-xs text-gray-500">총 지출</span>
-          <span className="text-base font-bold text-gray-900">
+          <span className="text-xs text-text-muted">총 지출</span>
+          <span className="text-base font-bold text-text">
             {totalAmount.toLocaleString()}원
           </span>
         </div>
@@ -57,8 +64,8 @@ export default function CategoryDonutChart({ breakdown, totalAmount }: Props) {
                 style={{ backgroundColor: color }}
                 aria-hidden
               />
-              <span className="min-w-0 flex-1 truncate text-gray-700">{item.category}</span>
-              <span className="shrink-0 font-medium text-gray-900">
+              <span className="min-w-0 flex-1 truncate text-slate-700">{item.category}</span>
+              <span className="shrink-0 font-medium text-text">
                 {item.percent}% · {item.amount.toLocaleString()}원
               </span>
             </li>

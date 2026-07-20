@@ -125,15 +125,15 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-xl font-bold text-gray-900">알림</h1>
-        <p className="mt-1 text-sm text-gray-500">결제 예정인 구독을 확인하고 관리하세요.</p>
+        <h1 className="text-xl font-bold text-text">알림</h1>
+        <p className="mt-1 text-sm text-text-muted">결제 예정인 구독을 확인하고 관리하세요.</p>
       </header>
 
       {notificationPermission !== "unsupported" && (
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-700">🔔 브라우저 알림</p>
-            <p className="mt-0.5 text-xs text-gray-400">
+            <p className="text-sm font-medium text-slate-700">🔔 브라우저 알림</p>
+            <p className="mt-0.5 text-xs text-slate-400">
               {notificationPermission === "granted"
                 ? "결제 예정 구독을 브라우저 알림으로 받고 있어요."
                 : notificationPermission === "denied"
@@ -145,7 +145,7 @@ export default function NotificationsPage() {
             <button
               type="button"
               onClick={handleRequestNotificationPermission}
-              className="shrink-0 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+              className="shrink-0 rounded-lg bg-primary-600 px-3 py-2 text-xs font-semibold text-white hover:bg-primary-700"
             >
               알림 허용
             </button>
@@ -154,7 +154,7 @@ export default function NotificationsPage() {
       )}
 
       <div>
-        <span className="mb-1 block text-sm font-medium text-gray-700">알림 시점</span>
+        <span className="mb-1 block text-sm font-medium text-slate-700">알림 시점</span>
         <div className="grid grid-cols-4 gap-2">
           {NOTIFICATION_THRESHOLD_OPTIONS.map((opt) => (
             <button
@@ -163,8 +163,8 @@ export default function NotificationsPage() {
               onClick={() => handleThresholdChange(opt.value)}
               className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                 threshold === opt.value
-                  ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                  : "border-gray-300 text-gray-600"
+                  ? "border-primary-600 bg-primary-50 text-primary-700"
+                  : "border-border-strong text-slate-600"
               }`}
             >
               {opt.label}
@@ -175,8 +175,8 @@ export default function NotificationsPage() {
 
       <section className="space-y-3">
         {isLoaded && upcoming.length === 0 && (
-          <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
-            <p className="text-sm text-gray-500">선택한 기간 내 결제 예정인 구독이 없어요.</p>
+          <div className="rounded-xl border border-dashed border-border-strong p-8 text-center">
+            <p className="text-sm text-text-muted">선택한 기간 내 결제 예정인 구독이 없어요.</p>
           </div>
         )}
         {upcoming.map((sub) => (
@@ -192,7 +192,7 @@ export default function NotificationsPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-gray-700">결제 캘린더</h2>
+        <h2 className="text-sm font-semibold text-slate-700">결제 캘린더</h2>
         <BillingCalendar subscriptions={subscriptions} />
       </section>
 
@@ -202,23 +202,23 @@ export default function NotificationsPage() {
           onClick={handleKeep}
         >
           <div
-            className="w-full max-w-md rounded-t-2xl bg-white p-6 sm:rounded-2xl"
+            className="w-full max-w-md rounded-t-2xl bg-surface p-6 sm:rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {modalStep === "confirm" && (
               <>
-                <p className="text-sm text-gray-500">{selected.serviceName}</p>
-                <h2 className="mt-1 text-lg font-bold text-gray-900">
+                <p className="text-sm text-text-muted">{selected.serviceName}</p>
+                <h2 className="mt-1 text-lg font-bold text-text">
                   {selected.isTrial
                     ? "무료체험이 곧 끝나요"
                     : `${selected.amount.toLocaleString()}원 결제가 곧 진행돼요`}
                 </h2>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-text-muted">
                   {selected.isTrial
                     ? "지금 해지하면 결제 없이 종료돼요."
                     : "이 구독을 계속 유지할까요?"}
                 </p>
-                <p className="mt-2 text-sm font-medium text-indigo-600">
+                <p className="mt-2 text-sm font-medium text-primary-600">
                   이 구독 해지하면 연간 약{" "}
                   {getAnnualSavingsForSub(selected).toLocaleString()}원 절약돼요
                 </p>
@@ -234,7 +234,7 @@ export default function NotificationsPage() {
                   <button
                     type="button"
                     onClick={handleKeep}
-                    className="rounded-lg bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
+                    className="rounded-lg bg-primary-600 py-3 text-sm font-semibold text-white hover:bg-primary-700"
                   >
                     구독 유지
                   </button>
@@ -244,8 +244,8 @@ export default function NotificationsPage() {
 
             {modalStep === "goal" && (
               <>
-                <h2 className="text-lg font-bold text-gray-900">이 돈을 어디에 모아볼까요?</h2>
-                <p className="mt-1 text-sm text-gray-500">
+                <h2 className="text-lg font-bold text-text">이 돈을 어디에 모아볼까요?</h2>
+                <p className="mt-1 text-sm text-text-muted">
                   연간 약 {getAnnualSavingsForSub(selected).toLocaleString()}원을 모을 목표를
                   정해주세요.
                 </p>
@@ -258,8 +258,8 @@ export default function NotificationsPage() {
                       onClick={() => setGoalChoice(option)}
                       className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                         goalChoice === option
-                          ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                          : "border-gray-300 text-gray-600"
+                          ? "border-primary-600 bg-primary-50 text-primary-700"
+                          : "border-border-strong text-slate-600"
                       }`}
                     >
                       {option}
@@ -273,7 +273,7 @@ export default function NotificationsPage() {
                     value={customGoalName}
                     onChange={(e) => setCustomGoalName(e.target.value)}
                     placeholder="예: 새 노트북"
-                    className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                    className="mt-3 w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:border-primary-500 focus:outline-none"
                   />
                 )}
 
@@ -281,14 +281,14 @@ export default function NotificationsPage() {
                   <button
                     type="button"
                     onClick={handleKeep}
-                    className="rounded-lg border border-gray-300 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+                    className="rounded-lg border border-border-strong py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50"
                   >
                     취소
                   </button>
                   <button
                     type="button"
                     onClick={handleConfirmGoal}
-                    className="rounded-lg bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
+                    className="rounded-lg bg-primary-600 py-3 text-sm font-semibold text-white hover:bg-primary-700"
                   >
                     목표 설정하고 해지
                   </button>

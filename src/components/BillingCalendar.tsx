@@ -45,30 +45,30 @@ export default function BillingCalendar({ subscriptions }: Props) {
   const selectedSubs = selectedDay !== null ? billingMap.get(selectedDay) ?? [] : [];
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4">
+    <div className="rounded-2xl border border-border bg-surface p-4">
       <div className="flex items-center justify-between">
         <button
           type="button"
           onClick={goPrevMonth}
           aria-label="이전 달"
-          className="rounded-lg px-3 py-1 text-gray-500 hover:bg-gray-100"
+          className="rounded-lg px-3 py-1 text-text-muted hover:bg-slate-100"
         >
           ‹
         </button>
-        <p className="text-sm font-semibold text-gray-900">
+        <p className="text-sm font-semibold text-text">
           {viewYear}년 {viewMonth + 1}월
         </p>
         <button
           type="button"
           onClick={goNextMonth}
           aria-label="다음 달"
-          className="rounded-lg px-3 py-1 text-gray-500 hover:bg-gray-100"
+          className="rounded-lg px-3 py-1 text-text-muted hover:bg-slate-100"
         >
           ›
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[11px] text-gray-400">
+      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[11px] text-slate-400">
         {WEEKDAY_LABELS.map((label) => (
           <div key={label}>{label}</div>
         ))}
@@ -91,16 +91,16 @@ export default function BillingCalendar({ subscriptions }: Props) {
               onClick={() => setSelectedDay(day)}
               className={`flex h-9 flex-col items-center justify-center rounded-lg text-xs transition-colors ${
                 isSelected
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-primary-600 text-white"
                   : isToday
-                    ? "border border-indigo-400 text-gray-900"
-                    : "text-gray-700 hover:bg-gray-50"
+                    ? "border border-primary-400 text-text"
+                    : "text-slate-700 hover:bg-slate-50"
               }`}
             >
               <span>{day}</span>
               {hasBilling && (
                 <span
-                  className={`mt-0.5 h-1 w-1 rounded-full ${isSelected ? "bg-white" : "bg-indigo-500"}`}
+                  className={`mt-0.5 h-1 w-1 rounded-full ${isSelected ? "bg-white" : "bg-primary-500"}`}
                 />
               )}
             </button>
@@ -108,11 +108,11 @@ export default function BillingCalendar({ subscriptions }: Props) {
         })}
       </div>
 
-      <div className="mt-4 border-t border-gray-100 pt-3">
+      <div className="mt-4 border-t border-slate-100 pt-3">
         {selectedDay === null ? (
-          <p className="text-xs text-gray-400">날짜를 선택하면 결제 예정 구독을 볼 수 있어요.</p>
+          <p className="text-xs text-slate-400">날짜를 선택하면 결제 예정 구독을 볼 수 있어요.</p>
         ) : selectedSubs.length === 0 ? (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-slate-400">
             {viewMonth + 1}월 {selectedDay}일에는 결제 예정 구독이 없어요.
           </p>
         ) : (
@@ -120,8 +120,8 @@ export default function BillingCalendar({ subscriptions }: Props) {
             {selectedSubs.map((sub) => (
               <li key={sub.id} className="flex items-center gap-2 text-sm">
                 <ServiceIcon serviceName={sub.serviceName} size="sm" />
-                <span className="min-w-0 flex-1 truncate text-gray-700">{sub.serviceName}</span>
-                <span className="shrink-0 font-semibold text-gray-900">
+                <span className="min-w-0 flex-1 truncate text-slate-700">{sub.serviceName}</span>
+                <span className="shrink-0 font-semibold text-text">
                   {sub.amount.toLocaleString()}원
                 </span>
               </li>

@@ -266,3 +266,51 @@ UI 작업 착수 전 기능 점검 3가지 요청에 따른 후속 조치.
 - (아이디어) 또래 대비 지출 비교, 중복 카테고리 경고
 - (알려진 이슈, 과거 데이터에만 해당) 재구독 이력의 `serviceName` 정확 일치 매칭 — 이번 변경 이전에 커스텀 입력으로 등록된 과거 데이터에는 여전히 오타/표기 차이 이슈가 남아있음
 - 브라우저 알림은 탭이 열려 있을 때만 동작(서비스 워커 없음) — 앱을 완전히 닫아도 오는 진짜 푸시가 필요해지면 PWA 매니페스트+서비스 워커+발송 서버 추가가 필요함
+
+---
+
+## 2026-07-17 (UI 개선: 디자인 토큰 통일 — 폰트 버그 수정 + 색상 시스템 정리)
+
+제출 2일 전, 포스터 제작 전 마지막 단계로 진행. 기능 추가 없이 시각적 일관성만 빠르게 정리하는 최소범위 작업.
+
+### 0단계 — 폰트 버그 수정
+- `globals.css`의 `body { font-family: Arial, Helvetica, sans-serif; }`가 `layout.tsx`에서 로드한 Geist 폰트 변수를 완전히 덮어쓰고 있었음(엘리먼트 선택자보다 클래스 선택자가 특이도가 높아 `bg-gray-50` 같은 유틸리티 클래스가 항상 이겼던 것과 같은 구조). 게다가 Geist는 라틴 서브셋이라 애초에 한글을 지원하지 않아, 폰트가 정상이었어도 한글에는 적용된 적이 없었음
+- Arial 하드코딩 제거, CDN(jsdelivr)으로 Pretendard를 로드해 기본 sans으로 지정. Geist는 영문/숫자 폴백으로 유지
+- **트러블슈팅**: `@import url(pretendard)`를 `@import "tailwindcss"` 뒤에 두니 빌드 시 "`@import` rules must precede all rules" CSS 경고가 발생(Tailwind의 import가 내부적으로 `@layer`로 확장되면서 그 뒤의 import가 규칙 위반) → import 순서를 Pretendard 먼저, tailwindcss 나중으로 교체해 해결. 이어서 토큰 설명 주석 안에 `primary-*/슬레이트`라고 쓴 부분의 `*/`가 CSS 주석을 조기 종료시켜 그 뒤 텍스트가 코드로 파싱되는 2차 버그도 발견해 문구를 수정(가운뎃점으로 교체)
+
+### 1단계 — 색상/무드 컨셉 선택
+- AskUserQuestion으로 2가지 제안: **A. 신뢰 인디고**(기존 계열 유지, 메인 인디고+보조 스카이블루+Slate 그레이) vs **B. 모던 바이올렛**(메인 바이올렛+포인트 로즈+Neutral 그레이). danger=red/success=emerald/warning=amber는 두 안 모두 유지
+- **선택됨: A. 신뢰 인디고** — 기존 인디고 톤을 그대로 유지하기로 결정
+
+### 2단계 — 디자인 토큰 정의 (`globals.css`)
+Tailwind v4의 `@theme inline`에 `--color-*` 커스텀 프로퍼티로 정의(이 방식은 정의만 하면 `bg-`/`text-`/`border-` 유틸리티가 자동 생성됨):
+- **Primary**(기존 indigo 6단계를 이름만 변경, 값은 완전히 동일): `--color-primary-50/100/400/500/600/700`
+- **Accent**(신규, 아직 어디서도 안 씀 — 향후 필요해지면 사용): `--color-accent`(#0ea5e9), `--color-accent-hover`
+- **중립(Slate)**: `--color-bg`(#f8fafc), `--color-surface`(#ffffff), `--color-border`(#e2e8f0), `--color-border-strong`(#cbd5e1), `--color-text`(#0f172a), `--color-text-muted`(#64748b)
+- **상태색**(값은 기존 그대로, 이름만 부여 — 실제 적용은 안 함, 아래 참고): `--color-danger`(#dc2626), `--color-success`(#059669), `--color-warning`(#d97706)
+- 타이포/스페이싱 스케일은 감사 결과 이미 화면 간 일관돼 있었음(`rounded-xl`=카드, `rounded-lg`=버튼/입력, `rounded-full`=배지/토글로 전 화면 통일). 새 스케일을 만들 필요가 없어 손대지 않음
+
+### 3단계 — 4개 화면 + 공용 컴포넌트에 적용
+- 대상: `page.tsx`, `register/page.tsx`, `notifications/page.tsx`, `report/page.tsx`, `src/components/*` 전체(`ServiceIcon.tsx` 제외 — 브랜드 SVG/이모지만 다뤄 교체할 색이 없음)
+- **`indigo-*` → `primary-*`**: 6개 shade를 1:1로 그대로 치환(코드 상 시각적 변화 없음, 이름만 바뀜)
+- **`gray-*` → 역할별로 분기**: 카드 배경(`bg-white`)은 `bg-surface`, 카드 테두리(`border-gray-200`)는 `border-border`, 입력/버튼 테두리(`border-gray-300`)는 `border-border-strong`, 페이지 배경(`bg-gray-50`)은 `bg-bg`, 강조 텍스트(`text-gray-900`)는 `text-text`, 보조/캡션 텍스트(`text-gray-500`)는 `text-text-muted`로 이름 있는 토큰에 매핑. 이 5가지 역할에 해당하지 않는 나머지 중간 톤(`text-gray-700/600/400/300`, `bg-gray-100/300` 등)은 별도 토큰을 만들지 않고 그대로 `slate-700/600/400/300` 등으로 색상 계열만 교체(최소범위 원칙 — 모든 shade에 이름을 붙이지는 않음)
+- **danger/success/warning(red/emerald/amber)는 건드리지 않음** — 이미 전체 화면에서 일관되게 같은 의미로 쓰이고 있었고, 상태색은 shade가 여러 단계(예: red-50/red-200/red-600/red-700)로 쓰여 토큰 하나로 축약하면 시각적 위계가 깨져서, 이번 스코프에서는 이름만 정의해두고 실제 클래스 교체는 하지 않음(향후 필요 시 참고용)
+- `layout.tsx`의 `<body className="... bg-gray-50">`도 제거 — 이제 `globals.css`의 `body { background: var(--color-bg) }` 규칙이 전담(중복/충돌 소지 제거)
+- 사용되지 않던 Next.js 보일러플레이트(`--background`/`--foreground`/다크모드 미디어쿼리)도 함께 제거 — 실제로 참조하는 곳이 없어 정리
+- `CategoryDonutChart.tsx`의 도넛 트랙 색(`#e1e0d9` 하드코딩)은 `var(--color-border-strong)`로 교체해 토큰에 연결
+- 레이아웃 구조·기능 로직은 전혀 변경하지 않음. 새 컴포넌트/디자인 시스템 라이브러리 도입 없음
+
+### 4단계 — 검증
+- `npx tsc --noEmit`, `npm run build -- --webpack` 통과(CSS 경고 2건 발견 후 수정 완료, 위 트러블슈팅 참고)
+- Playwright로 4개 화면을 375px로 스크린샷 캡처, `body`의 computed `font-family`에 Pretendard가 포함되는지, `background-color`가 정확히 slate-50(`rgb(248,250,252)`)인지, 대시보드 배너의 `background-color`가 정확히 indigo-600(`rgb(79,70,229)`)인지 확인 — 전부 일치
+- `git stash`로 변경 전 상태를 잠깐 복원해 "before"(Arial 폰트) 스크린샷을 찍고 `git stash pop`으로 복원 → 폰트가 Pretendard로 정상 전환된 것을 전/후 비교로 확인
+- 콘솔/페이지 에러 0건 (전 화면)
+- 전체 기능 회귀 테스트는 이번 스코프 제외(시간 제약, 색상/폰트만 빠르게 확인)
+
+### 다음에 할 일
+- Vercel 배포
+- 포스터 재제작 (`docs/개인PRD.docx` 기반, `project-poster-designer` 스킬 사용 — 직전 origin 병합으로 관련 파일들이 로컬에 복구됨)
+- (아이디어) 또래 대비 지출 비교, 중복 카테고리 경고
+- (알려진 이슈, 과거 데이터에만 해당) 재구독 이력의 `serviceName` 정확 일치 매칭
+- (선택) `--color-accent` 토큰은 정의만 해두고 아직 어디에도 쓰이지 않음 — 실제로 강조가 필요한 지점이 생기면 적용 검토
+- (선택) danger/success/warning 토큰도 이름만 정의된 상태 — 상태색 shade 체계를 더 정리하고 싶어지면 그때 전체 교체 검토
