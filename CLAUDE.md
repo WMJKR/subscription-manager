@@ -412,3 +412,31 @@ QR 삽입 직전 마지막 손질. 텍스트/레이블 3곳만 수정.
 - QR 코드는 UI·포스터 작업이 전부 끝난 뒤, 프로덕션 승격 후 재생성 예정
 - (아이디어) 또래 대비 지출 비교, 중복 카테고리 경고
 - (알려진 이슈, 과거 데이터에만 해당) 재구독 이력의 `serviceName` 정확 일치 매칭
+
+---
+
+## 2026-07-21 (프로덕션 승격 + 포스터 QR 코드 삽입)
+
+제출 마감 직전, 마지막 단계. 프로덕션 배포를 확정하고 그 주소로 QR을 생성해 포스터에 삽입했다.
+
+### 프로덕션 승격
+- `npx vercel --prod --yes`로 프로덕션 배포 실행, `https://subscription-manager-delta-one.vercel.app`로 정상 얼리어싱(`readyState: READY`) 확인
+- `curl`로 4개 라우트(`/`, `/register`, `/notifications`, `/report`) 전부 HTTP 200 확인
+- Playwright로 프로덕션 주소에서 다크모드 토글 버튼 존재 및 콘솔/페이지 에러 0건 확인
+
+### QR 코드 생성 및 삽입
+- `qrcode`(npm, 스크래치패드에만 설치 — 프로젝트 의존성 아님)로 프로덕션 URL의 QR을 SVG로 생성(`poster_qr.svg`). 인쇄 시 화질 저하가 없도록 비트맵이 아닌 SVG로 삽입
+- `poster.html`의 `.footer .qr-placeholder`에 `padding: 1.5mm`와 `svg { width:100%; height:100% }` 규칙을 추가하고, "QR" 텍스트 placeholder를 실제 QR SVG로 교체
+
+### 트러블슈팅 — 수동 전사 중 QR 데이터 손상
+- 최초 삽입 시 SVG의 긴 `<path>` `d` 속성(1788자)을 직접 타이핑해 옮기다 391번째 문자 위치에서 6자가 손실되는 오류가 발생(`jsqr`+`pngjs`로 스크린샷 디코드를 시도했으나 실패 — 당시엔 해상도 문제인지 손상 문제인지 불명확했음). 원본 `poster_qr.svg`와 `poster.html`에 삽입된 문자열을 직접 문자 단위로 비교하는 스크립트로 손상 위치와 정도를 정확히 특정
+- **재발 방지 조치**: 수동 전사 대신, Node.js 스크립트로 `poster_qr.svg`에서 `<svg>...</svg>` 블록 전체를 정규식으로 추출해 `poster.html`에 그대로 치환·삽입하는 방식으로 재작업 — 이후 다시 문자 단위 비교로 원본과 완전히 동일함(`identical: true`)을 확인. **앞으로 QR/바코드처럼 한 글자라도 틀리면 안 되는 긴 인코딩 데이터를 HTML에 삽입할 때는 절대 직접 타이핑하지 말고, 항상 스크립트로 파일 내용을 그대로 옮길 것**
+- 최종적으로 Playwright로 `poster.html`의 QR SVG를 고해상도(4x DPI)로 스크린샷한 뒤 `jsQR`로 디코드해 실제로 `https://subscription-manager-delta-one.vercel.app`로 정확히 읽히는 것까지 확인 — 문자열 일치뿐 아니라 스캔 가능성까지 기능적으로 검증 완료
+
+### 검증
+- `check_overflow.py` 재확인(594.0mm/419.9mm, 통과) → `export_pdf.py`로 `poster.pdf` 재생성(356KB, 420mm×594mm)
+- QR SVG 문자열 원본 대비 완전 일치(`identical: true`) + `jsQR` 디코드 결과가 정확한 프로덕션 URL과 일치, 두 가지 방식으로 이중 검증
+
+### 다음에 할 일
+- (아이디어) 또래 대비 지출 비교, 중복 카테고리 경고
+- (알려진 이슈, 과거 데이터에만 해당) 재구독 이력의 `serviceName` 정확 일치 매칭
