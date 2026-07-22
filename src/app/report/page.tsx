@@ -5,7 +5,7 @@ import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { updateSubscription } from "@/lib/storage";
 import { getActualAmount } from "@/lib/spending-metrics";
 import { getCostPerUse, getWeekKey } from "@/lib/usage-checkin";
-import { getServiceIcon } from "@/lib/constants";
+import ServiceIcon from "@/components/ServiceIcon";
 import { getCardBreakdown } from "@/lib/card";
 import { getSubscriptionHistory } from "@/lib/subscription-history";
 import { Subscription, UsageFrequency } from "@/lib/types";
@@ -82,7 +82,7 @@ export default function ReportPage() {
             return (
               <li key={sub.id} className="rounded-xl border border-border bg-surface p-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl leading-none">{getServiceIcon(sub.serviceName)}</span>
+                  <ServiceIcon serviceName={sub.serviceName} size="md" />
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text">
                     {sub.serviceName}
                   </span>
@@ -234,7 +234,7 @@ export default function ReportPage() {
                 className="rounded-xl border border-border bg-surface p-3"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-xl leading-none">{getServiceIcon(item.serviceName)}</span>
+                  <ServiceIcon serviceName={item.serviceName} size="md" />
                   <p className="min-w-0 flex-1 truncate text-sm font-semibold text-text">
                     {item.serviceName}
                   </p>
